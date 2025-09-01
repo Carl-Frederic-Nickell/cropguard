@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: agrar-db
+    environment:
+      POSTGRES_DB: agrar_dashboard
+      POSTGRES_USER: agrar_user
+      POSTGRES_PASSWORD: secure_password_2024
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - agrar-network
+
+  backend:
+    build: ./backend
+    container_name: agrar-backend
+    environment:
+      DATABASE_URL: "postgresql://agrar_user:secure_password_2024@postgres:5432/agrar_dashboard?schema=public"
+      JWT_SECRET: "backend_jwt_secret_key_2024"
+      PORT: 5000
+    ports:
+      - "5002:5000"
+    depends_on:
+      - postgres
+    networks:
+      - agrar-network
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build: ./frontend
+    container_name: agrar-frontend
+    environment:
+      NEXTAUTH_SECRET: "agrar_dashboard_secret_key_2024"
+      NEXTAUTH_URL: "http://localhost:3001"
+      DATABASE_URL: "postgresql://agrar_user:secure_password_2024@postgres:5432/agrar_dashboard?schema=public"
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+      - postgres
+    networks:
+      - agrar-network
+
+volumes:
+  postgres_data:
+
+networks:
+  agrar-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
