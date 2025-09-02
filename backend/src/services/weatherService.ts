@@ -17,6 +17,16 @@ export interface HarvestRecommendation {
   cropType: string;
   recommendation: 'good' | 'caution' | 'avoid';
   reason: string;
+  confidence: number;
+  nextOptimalDate?: string;
+  riskFactors: Array<{
+    type: 'weather' | 'timing' | 'conditions';
+    severity: 'low' | 'medium' | 'high';
+    description: string;
+  }>;
+  harvestAdvice: string;
+  moistureLimit: number;
+  isFieldMoisture: boolean;
 }
 
 export const getCurrentWeather = async (lat: number, lon: number): Promise<WeatherData> => {
