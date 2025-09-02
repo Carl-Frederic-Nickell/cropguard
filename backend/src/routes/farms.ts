@@ -4,11 +4,10 @@ import { authenticateToken, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-// Alle Farmen eines Users abrufen
-router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+// Alle Farmen abrufen (temporarily without authentication)
+router.get('/', async (req: Request, res: Response) => {
   try {
     const farms = await prisma.farm.findMany({
-      where: { userId: req.userId },
       include: { crops: true }
     });
     res.json(farms);
@@ -17,17 +16,29 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// Farm erstellen
-router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
+// Farm erstellen (temporarily without authentication)
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { name, location, latitude, longitude } = req.body;
+    // Create a temporary user for testing
+    let user = await prisma.user.findFirst();
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: 'test@example.com',
+          password: 'hashedpassword',
+          name: 'Test User'
+        }
+      });
+    }
+    
     const farm = await prisma.farm.create({
       data: {
         name,
         location,
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
-        userId: req.userId!
+        userId: user.id
       }
     });
     res.status(201).json(farm);
@@ -36,8 +47,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// Pflanze zu Farm hinzufügen
-router.post('/:farmId/crops', authenticateToken, async (req: AuthRequest, res: Response) => {
+// Pflanze zu Farm hinzufügen (temporarily without authentication)
+router.post('/:farmId/crops', async (req: Request, res: Response) => {
   try {
     const { farmId } = req.params;
     const { name, type, plantedDate } = req.body;

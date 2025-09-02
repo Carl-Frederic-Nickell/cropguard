@@ -1,11 +1,8 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import { CloudRain, Thermometer, Droplets, Wind } from 'lucide-react'
 
 export default function DashboardPage() {
-  const { data: session } = useSession()
-
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -13,7 +10,7 @@ export default function DashboardPage() {
           Dashboard Übersicht
         </h1>
         <p className="text-gray-600">
-          Willkommen zurück, {session?.user?.name}! Hier ist eine Übersicht über Ihre landwirtschaftlichen Aktivitäten.
+          Willkommen zurück, Test User! Hier ist eine Übersicht über Ihre landwirtschaftlichen Aktivitäten.
         </p>
       </div>
 

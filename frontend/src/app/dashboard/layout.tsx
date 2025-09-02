@@ -1,32 +1,12 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import { Tractor, CloudRain, Users, Settings, LogOut } from 'lucide-react'
+import { Tractor, Settings } from 'lucide-react'
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (status !== 'loading' && !session) {
-      router.push('/login')
-    }
-  }, [session, status, router])
-
-  if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
-  }
-
-  if (!session) {
-    return null
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-green-800 text-white shadow-lg">
@@ -58,13 +38,10 @@ export default function DashboardLayout({
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-sm">Willkommen, {session.user?.name}</span>
-              <button
-                onClick={() => signOut()}
-                className="flex items-center space-x-1 hover:bg-green-700 px-3 py-2 rounded-md"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Abmelden</span>
+              <span className="text-sm">Willkommen, Test User</span>
+              <button className="flex items-center space-x-1 hover:bg-green-700 px-3 py-2 rounded-md">
+                <Settings className="h-4 w-4" />
+                <span>Einstellungen</span>
               </button>
             </div>
           </div>

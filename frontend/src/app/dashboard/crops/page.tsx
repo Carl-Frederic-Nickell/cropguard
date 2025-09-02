@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import { 
   Plus, 
   Filter, 
@@ -59,7 +58,6 @@ interface CropType {
 }
 
 export default function CropsPage() {
-  const { data: session } = useSession()
   const [crops, setCrops] = useState<Crop[]>([])
   const [farms, setFarms] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -159,11 +157,7 @@ export default function CropsPage() {
 
   const fetchCrops = async () => {
     try {
-      const response = await fetch('/api/farms', {
-        headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
-        }
-      })
+      const response = await fetch('/api/farms')
       if (response.ok) {
         const farmsData = await response.json()
         setFarms(farmsData)
@@ -213,8 +207,7 @@ export default function CropsPage() {
       const response = await fetch(`/api/farms/${newCrop.farmId}/crops`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(newCrop)
       })
@@ -271,10 +264,8 @@ export default function CropsPage() {
   }
 
   useEffect(() => {
-    if (session) {
-      fetchCrops()
-    }
-  }, [session])
+    fetchCrops()
+  }, [])
 
   if (isLoading) {
     return (

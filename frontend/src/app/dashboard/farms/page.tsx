@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import { Plus, MapPin, Calendar, Wheat } from 'lucide-react'
 
 interface Farm {
@@ -21,7 +20,6 @@ interface Crop {
 }
 
 export default function FarmsPage() {
-  const { data: session } = useSession()
   const [farms, setFarms] = useState<Farm[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -39,11 +37,7 @@ export default function FarmsPage() {
 
   const fetchFarms = async () => {
     try {
-      const res = await fetch('/api/farms', {
-        headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
-        }
-      })
+      const res = await fetch('/api/farms')
       if (res.ok) {
         const data = await res.json()
         setFarms(data)
@@ -61,8 +55,7 @@ export default function FarmsPage() {
       const res = await fetch('/api/farms', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.accessToken}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(newFarm)
       })

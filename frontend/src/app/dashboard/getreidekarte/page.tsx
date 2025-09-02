@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import { 
   Wheat, 
   MapPin, 
@@ -55,7 +54,6 @@ interface CropStatus {
 }
 
 export default function GetreidekartePage() {
-  const { data: session } = useSession()
   const [cropStatuses, setCropStatuses] = useState<CropStatus[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'good' | 'caution' | 'avoid'>('all')
@@ -65,11 +63,7 @@ export default function GetreidekartePage() {
     setIsLoading(true)
     try {
       // Fetch farms and crops
-      const farmsResponse = await fetch('/api/farms', {
-        headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
-        }
-      })
+      const farmsResponse = await fetch('/api/farms')
       
       if (farmsResponse.ok) {
         const farms = await farmsResponse.json()
@@ -234,10 +228,8 @@ export default function GetreidekartePage() {
     })
 
   useEffect(() => {
-    if (session) {
-      fetchCropStatuses()
-    }
-  }, [session])
+    fetchCropStatuses()
+  }, [])
 
   if (isLoading) {
     return (

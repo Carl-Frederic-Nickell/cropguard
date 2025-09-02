@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 import { 
   CloudRain, 
   Thermometer, 
@@ -39,7 +38,6 @@ interface WeatherResponse {
 }
 
 export default function WeatherPage() {
-  const { data: session } = useSession()
   const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedLocation, setSelectedLocation] = useState({
@@ -69,11 +67,7 @@ export default function WeatherPage() {
 
   const fetchFarms = async () => {
     try {
-      const response = await fetch('/api/farms', {
-        headers: {
-          'Authorization': `Bearer ${session?.accessToken}`
-        }
-      })
+      const response = await fetch('/api/farms')
       if (response.ok) {
         const data = await response.json()
         setFarms(data)
@@ -125,10 +119,8 @@ export default function WeatherPage() {
   }, [selectedLocation, selectedCrop])
 
   useEffect(() => {
-    if (session) {
-      fetchFarms()
-    }
-  }, [session])
+    fetchFarms()
+  }, [])
 
   const getWeatherIcon = (condition: string) => {
     const lowerCondition = condition.toLowerCase()
