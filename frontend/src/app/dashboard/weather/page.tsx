@@ -213,7 +213,7 @@ export default function WeatherPage() {
             <select
               value={selectedCrop}
               onChange={(e) => setSelectedCrop(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 font-medium bg-white"
             >
               {cropOptions.map(option => (
                 <option key={option.value} value={option.value}>
@@ -236,7 +236,7 @@ export default function WeatherPage() {
                       handleLocationFromFarm(selectedFarm)
                     }
                   }}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 font-medium bg-white"
                   defaultValue=""
                 >
                   <option value="" disabled>Feld auswählen...</option>
@@ -356,7 +356,7 @@ export default function WeatherPage() {
               
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
-                  <Wind className="h-6 w-6 text-gray-500 mr-2" />
+                  <Wind className="h-6 w-6 text-gray-700 mr-2" />
                   <span className="text-2xl font-bold text-gray-900">
                     {weatherData.current.windSpeed.toFixed(1)} m/s
                   </span>

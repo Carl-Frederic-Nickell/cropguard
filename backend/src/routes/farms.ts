@@ -47,6 +47,47 @@ router.post('/', async (req: Request, res: Response) => {
   }
 });
 
+// Farm löschen (temporarily without authentication)
+router.delete('/:farmId', async (req: Request, res: Response) => {
+  try {
+    const { farmId } = req.params;
+    
+    // Erst alle Crops der Farm löschen
+    await prisma.crop.deleteMany({
+      where: { farmId }
+    });
+    
+    // Dann die Farm selbst löschen
+    await prisma.farm.delete({
+      where: { id: farmId }
+    });
+    
+    res.json({ success: true, message: 'Farm successfully deleted' });
+  } catch (error) {
+    console.error('Error deleting farm:', error);
+    res.status(500).json({ error: 'Failed to delete farm' });
+  }
+});
+
+// Farm abrufen (temporarily without authentication)
+router.get('/:farmId', async (req: Request, res: Response) => {
+  try {
+    const { farmId } = req.params;
+    const farm = await prisma.farm.findUnique({
+      where: { id: farmId },
+      include: { crops: true }
+    });
+    
+    if (!farm) {
+      return res.status(404).json({ error: 'Farm not found' });
+    }
+    
+    res.json(farm);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch farm' });
+  }
+});
+
 // Pflanze zu Farm hinzufügen (temporarily without authentication)
 router.post('/:farmId/crops', async (req: Request, res: Response) => {
   try {

@@ -17,7 +17,11 @@ import {
   TrendingDown,
   RefreshCw,
   Filter,
-  Eye
+  Eye,
+  Sprout,
+  TreePine,
+  Apple,
+  Circle
 } from 'lucide-react'
 
 interface CropStatus {
@@ -206,6 +210,30 @@ export default function GetreidekartePage() {
     }
   }
 
+  const getCropIcon = (cropType: string) => {
+    const lowerType = cropType.toLowerCase()
+    switch (lowerType) {
+      case 'weizen':
+        return <Wheat className="h-6 w-6 text-green-600" />
+      case 'gerste':
+        return <Wheat className="h-6 w-6 text-green-600" />
+      case 'raps':
+        return <Sprout className="h-6 w-6 text-green-600" />
+      case 'mais':
+        return <Circle className="h-6 w-6 text-green-600" />
+      case 'sonnenblumen':
+        return <Apple className="h-6 w-6 text-green-600" />
+      case 'kartoffeln':
+        return <TreePine className="h-6 w-6 text-green-600" />
+      case 'zuckerrueben':
+        return <TreePine className="h-6 w-6 text-green-600" />
+      case 'tomaten':
+        return <Apple className="h-6 w-6 text-green-600" />
+      default:
+        return <Wheat className="h-6 w-6 text-green-600" />
+    }
+  }
+
   const filteredAndSortedCrops = cropStatuses
     .filter(crop => selectedFilter === 'all' || crop.harvestStatus === selectedFilter)
     .sort((a, b) => {
@@ -299,11 +327,11 @@ export default function GetreidekartePage() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-500" />
+              <Filter className="h-4 w-4 text-gray-700" />
               <select
                 value={selectedFilter}
                 onChange={(e) => setSelectedFilter(e.target.value as any)}
-                className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-800 font-medium bg-white"
               >
                 <option value="all">Alle Status</option>
                 <option value="good">Nur Optimal</option>
@@ -315,7 +343,7 @@ export default function GetreidekartePage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-800 font-medium bg-white"
             >
               <option value="harvest">Nach Erntezeit</option>
               <option value="risk">Nach Risiko</option>
@@ -338,7 +366,7 @@ export default function GetreidekartePage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
                   <div className="p-3 bg-green-100 rounded-lg">
-                    <Wheat className="h-6 w-6 text-green-600" />
+                    {getCropIcon(crop.type)}
                   </div>
                   
                   <div>
@@ -371,7 +399,7 @@ export default function GetreidekartePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="flex items-center space-x-2 mb-1">
-                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <Calendar className="h-4 w-4 text-gray-700" />
                     <span className="text-sm font-medium text-gray-700">Nächste Ernte</span>
                   </div>
                   <div className="text-lg font-semibold text-gray-900">
@@ -380,14 +408,14 @@ export default function GetreidekartePage() {
                       : `In ${crop.daysToHarvest} Tagen`
                     }
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-700 font-medium">
                     {new Date(crop.nextHarvestDate).toLocaleDateString('de-DE')}
                   </div>
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="flex items-center space-x-2 mb-1">
-                    <Thermometer className="h-4 w-4 text-gray-500" />
+                    <Thermometer className="h-4 w-4 text-gray-700" />
                     <span className="text-sm font-medium text-gray-700">Aktuelle Bedingungen</span>
                   </div>
                   <div className="text-sm text-gray-900 space-y-1">
@@ -400,13 +428,13 @@ export default function GetreidekartePage() {
 
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <div className="flex items-center space-x-2 mb-1">
-                    <AlertTriangle className="h-4 w-4 text-gray-500" />
+                    <AlertTriangle className="h-4 w-4 text-gray-700" />
                     <span className="text-sm font-medium text-gray-700">Risikofaktoren</span>
                   </div>
                   <div className="text-lg font-semibold text-gray-900">
                     {crop.riskFactors.length}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-700 font-medium">
                     {crop.riskFactors.filter(r => r.severity === 'high').length} hoch, 
                     {crop.riskFactors.filter(r => r.severity === 'medium').length} mittel
                   </div>
@@ -443,20 +471,20 @@ export default function GetreidekartePage() {
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="grid grid-cols-4 gap-4 text-center">
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Temperatur</div>
-                    <div className="font-medium">{Math.round(crop.weatherConditions.temperature)}°C</div>
+                    <div className="text-sm text-gray-800 font-medium mb-1">Temperatur</div>
+                    <div className="font-bold text-gray-900">{Math.round(crop.weatherConditions.temperature)}°C</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Luftfeuchtigkeit</div>
-                    <div className="font-medium">{crop.weatherConditions.humidity}%</div>
+                    <div className="text-sm text-gray-800 font-medium mb-1">Luftfeuchtigkeit</div>
+                    <div className="font-bold text-gray-900">{crop.weatherConditions.humidity}%</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Niederschlag</div>
-                    <div className="font-medium">{crop.weatherConditions.precipitation.toFixed(1)}mm</div>
+                    <div className="text-sm text-gray-800 font-medium mb-1">Niederschlag</div>
+                    <div className="font-bold text-gray-900">{crop.weatherConditions.precipitation.toFixed(1)}mm</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Wind</div>
-                    <div className="font-medium">{crop.weatherConditions.windSpeed.toFixed(1)} m/s</div>
+                    <div className="text-sm text-gray-800 font-medium mb-1">Wind</div>
+                    <div className="font-bold text-gray-900">{crop.weatherConditions.windSpeed.toFixed(1)} m/s</div>
                   </div>
                 </div>
               </div>

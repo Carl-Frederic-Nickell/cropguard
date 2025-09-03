@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, MapPin, Calendar, Wheat } from 'lucide-react'
+import { Plus, MapPin, Calendar, Wheat, Trash2 } from 'lucide-react'
 
 interface Farm {
   id: string
@@ -70,6 +70,24 @@ export default function FarmsPage() {
     }
   }
 
+  const handleDelete = async (farmId: string, farmName: string) => {
+    if (window.confirm(`Möchten Sie das Feld "${farmName}" wirklich löschen?`)) {
+      try {
+        const res = await fetch(`/api/farms/${farmId}`, {
+          method: 'DELETE'
+        })
+
+        if (res.ok) {
+          fetchFarms()
+        } else {
+          console.error('Error deleting farm')
+        }
+      } catch (error) {
+        console.error('Error deleting farm:', error)
+      }
+    }
+  }
+
   if (isLoading) {
     return <div className="text-center">Loading farms...</div>
   }
@@ -100,7 +118,7 @@ export default function FarmsPage() {
                   type="text"
                   value={newFarm.name}
                   onChange={(e) => setNewFarm({...newFarm, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 font-medium placeholder-gray-500"
                   required
                 />
               </div>
@@ -112,7 +130,7 @@ export default function FarmsPage() {
                   type="text"
                   value={newFarm.location}
                   onChange={(e) => setNewFarm({...newFarm, location: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 font-medium placeholder-gray-500"
                   placeholder="z.B. Münster, NRW"
                   required
                 />
@@ -126,7 +144,7 @@ export default function FarmsPage() {
                   step="any"
                   value={newFarm.latitude}
                   onChange={(e) => setNewFarm({...newFarm, latitude: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 font-medium placeholder-gray-500"
                   placeholder="51.9607"
                   required
                 />
@@ -140,7 +158,7 @@ export default function FarmsPage() {
                   step="any"
                   value={newFarm.longitude}
                   onChange={(e) => setNewFarm({...newFarm, longitude: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 font-medium placeholder-gray-500"
                   placeholder="7.6261"
                   required
                 />
@@ -186,13 +204,20 @@ export default function FarmsPage() {
                   <span>{farm.crops.length} Kulturen</span>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
                 <a
                   href={`/dashboard/farms/${farm.id}`}
                   className="text-green-600 hover:text-green-800 text-sm font-medium"
                 >
                   Details anzeigen →
                 </a>
+                <button
+                  onClick={() => handleDelete(farm.id, farm.name)}
+                  className="text-red-600 hover:text-red-800 p-1 rounded-md hover:bg-red-50 transition-colors"
+                  title="Feld löschen"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
           ))

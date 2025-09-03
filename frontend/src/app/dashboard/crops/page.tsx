@@ -11,7 +11,7 @@ import {
   TreePine,
   Apple,
   Carrot,
-  Corn,
+  Circle,
   Calendar,
   MapPin,
   AlertTriangle,
@@ -106,7 +106,7 @@ export default function CropsPage() {
       id: 'mais',
       name: 'Mais',
       category: 'getreide',
-      icon: <Corn className="h-6 w-6" />,
+      icon: <Circle className="h-6 w-6" />,
       color: 'text-orange-600 bg-orange-100',
       harvestDuration: 100,
       criteria: { minTemp: 15, maxTemp: 30, maxHumidity: 20, maxPrecip: 1.0, maxWind: 15 }
@@ -362,7 +362,7 @@ export default function CropsPage() {
                 <select
                   value={selectedCrop}
                   onChange={(e) => setSelectedCrop(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 font-medium bg-white"
                 >
                   <option value="">Alle Kulturarten</option>
                   {cropTypes.map(type => (
@@ -391,7 +391,7 @@ export default function CropsPage() {
                   type="text"
                   value={newCrop.name}
                   onChange={(e) => setNewCrop({...newCrop, name: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 font-medium placeholder-gray-500"
                   placeholder="z.B. Winterweizen Feld A"
                   required
                 />
@@ -404,7 +404,7 @@ export default function CropsPage() {
                 <select
                   value={newCrop.type}
                   onChange={(e) => setNewCrop({...newCrop, type: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 font-medium bg-white"
                   required
                 >
                   <option value="">Kulturart wählen...</option>
@@ -424,7 +424,7 @@ export default function CropsPage() {
                   type="date"
                   value={newCrop.plantedDate}
                   onChange={(e) => setNewCrop({...newCrop, plantedDate: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 font-medium"
                   required
                 />
               </div>
@@ -436,7 +436,7 @@ export default function CropsPage() {
                 <select
                   value={newCrop.farmId}
                   onChange={(e) => setNewCrop({...newCrop, farmId: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 font-medium bg-white"
                   required
                 >
                   <option value="">Feld wählen...</option>
@@ -492,17 +492,18 @@ export default function CropsPage() {
               return (
                 <div key={crop.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${cropType?.color || 'text-gray-600 bg-gray-100'}`}>
-                        {cropType?.icon || <Sprout className="h-6 w-6" />}
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{crop.name}</h3>
-                        <p className="text-sm text-gray-600">{cropType?.name || crop.type}</p>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{crop.name}</h3>
+                      <p className="text-sm text-gray-600">{cropType?.name || crop.type}</p>
+                      <div className="flex items-center space-x-2 mt-2">
+                        {getStatusIcon(crop.harvestStatus || 'unknown')}
+                        <span className={`text-xs font-medium ${getStatusColor(crop.harvestStatus || 'unknown').replace('bg-', 'text-').replace('-100', '-700')}`}>
+                          {getStatusText(crop.harvestStatus || 'unknown')}
+                        </span>
                       </div>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(crop.harvestStatus || 'unknown')}`}>
-                      {getStatusText(crop.harvestStatus || 'unknown')}
+                    <div className={`p-2 rounded-lg ${cropType?.color || 'text-gray-600 bg-gray-100'}`}>
+                      {cropType?.icon || <Sprout className="h-6 w-6" />}
                     </div>
                   </div>
 
@@ -550,28 +551,35 @@ export default function CropsPage() {
             } else {
               return (
                 <div key={crop.id} className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900">{crop.name}</p>
+                      <p className="text-sm text-gray-600">{cropType?.name || crop.type}</p>
+                      <div className="flex items-center space-x-1 mt-1">
+                        {getStatusIcon(crop.harvestStatus || 'unknown')}
+                        <span className={`text-xs font-medium ${getStatusColor(crop.harvestStatus || 'unknown').replace('bg-', 'text-').replace('-100', '-700')}`}>
+                          {getStatusText(crop.harvestStatus || 'unknown')}
+                        </span>
+                      </div>
+                    </div>
+                    <div className={`p-2 rounded-lg ${cropType?.color || 'text-gray-600 bg-gray-100'}`}>
+                      {cropType?.icon || <Sprout className="h-5 w-5" />}
+                    </div>
+                  </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className={`p-2 rounded-lg ${cropType?.color || 'text-gray-600 bg-gray-100'}`}>
-                        {cropType?.icon || <Sprout className="h-5 w-5" />}
-                      </div>
-                      
-                      <div className="grid grid-cols-4 gap-4 flex-1">
-                        <div>
-                          <p className="font-semibold text-gray-900">{crop.name}</p>
-                          <p className="text-sm text-gray-600">{cropType?.name || crop.type}</p>
-                        </div>
+                      <div className="grid grid-cols-3 gap-4 flex-1">
                         
                         <div>
                           <p className="text-sm text-gray-600">{crop.farm.name}</p>
-                          <p className="text-xs text-gray-500">{crop.farm.location}</p>
+                          <p className="text-xs text-gray-700 font-medium">{crop.farm.location}</p>
                         </div>
                         
                         <div>
                           <p className="text-sm text-gray-600">
                             {new Date(crop.plantedDate).toLocaleDateString('de-DE')}
                           </p>
-                          <p className="text-xs text-gray-500">Gepflanzt</p>
+                          <p className="text-xs text-gray-700 font-medium">Gepflanzt</p>
                         </div>
                         
                         <div>
@@ -589,17 +597,12 @@ export default function CropsPage() {
                               }
                             </p>
                           )}
-                          <p className="text-xs text-gray-500">bis Ernte</p>
+                          <p className="text-xs text-gray-700 font-medium">bis Ernte</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center space-x-3">
-                      <div className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(crop.harvestStatus || 'unknown')}`}>
-                        {getStatusIcon(crop.harvestStatus || 'unknown')}
-                        <span className="ml-1">{getStatusText(crop.harvestStatus || 'unknown')}</span>
-                      </div>
-                      
                       <div className="flex space-x-1">
                         <button className="p-1 text-gray-600 hover:text-green-600">
                           <Eye className="h-4 w-4" />
