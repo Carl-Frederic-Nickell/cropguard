@@ -222,6 +222,24 @@ export default function CropsPage() {
     }
   }
 
+  const handleDeleteCrop = async (cropId: string, cropName: string, farmId: string) => {
+    if (window.confirm(`Möchten Sie die Kultur "${cropName}" wirklich löschen?`)) {
+      try {
+        const response = await fetch(`/api/farms/${farmId}/crops/${cropId}`, {
+          method: 'DELETE'
+        })
+
+        if (response.ok) {
+          fetchCrops()
+        } else {
+          console.error('Error deleting crop')
+        }
+      } catch (error) {
+        console.error('Error deleting crop:', error)
+      }
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'good': return <CheckCircle className="h-5 w-5 text-green-500" />
@@ -536,14 +554,23 @@ export default function CropsPage() {
                     )}
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
-                    <button className="flex items-center space-x-1 text-sm text-gray-600 hover:text-green-600">
-                      <Eye className="h-4 w-4" />
-                      <span>Details</span>
-                    </button>
-                    <button className="flex items-center space-x-1 text-sm text-gray-600 hover:text-blue-600">
-                      <Edit className="h-4 w-4" />
-                      <span>Bearbeiten</span>
+                  <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                    <div className="flex space-x-2">
+                      <button className="flex items-center space-x-1 text-sm text-gray-600 hover:text-green-600">
+                        <Eye className="h-4 w-4" />
+                        <span>Details</span>
+                      </button>
+                      <button className="flex items-center space-x-1 text-sm text-gray-600 hover:text-blue-600">
+                        <Edit className="h-4 w-4" />
+                        <span>Bearbeiten</span>
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteCrop(crop.id, crop.name, crop.farm.id)}
+                      className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
+                      title="Kultur löschen"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
@@ -609,6 +636,13 @@ export default function CropsPage() {
                         </button>
                         <button className="p-1 text-gray-600 hover:text-blue-600">
                           <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCrop(crop.id, crop.name, crop.farm.id)}
+                          className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
+                          title="Kultur löschen"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </div>

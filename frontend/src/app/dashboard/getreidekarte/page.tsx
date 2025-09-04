@@ -21,8 +21,19 @@ import {
   Sprout,
   TreePine,
   Apple,
-  Circle
+  Circle,
+  Map,
+  List
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+// Dynamically import the map to prevent SSR issues
+const InteractiveMap = dynamic(() => import('../../../components/InteractiveMap'), {
+  ssr: false,
+  loading: () => <div className="w-full h-96 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center">
+    <Map className="h-8 w-8 text-gray-400" />
+  </div>
+})
 
 interface CropStatus {
   id: string
@@ -62,6 +73,9 @@ export default function GetreidekartePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'good' | 'caution' | 'avoid'>('all')
   const [sortBy, setSortBy] = useState<'harvest' | 'risk' | 'name'>('harvest')
+  const [showMap, setShowMap] = useState(true)
+  const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null)
+  const [farms, setFarms] = useState<any[]>([])
 
   const fetchCropStatuses = async () => {
     setIsLoading(true)
@@ -166,6 +180,7 @@ export default function GetreidekartePage() {
         }
         
         setCropStatuses(statuses)
+        setFarms(farms)
       }
     } catch (error) {
       console.error('Error fetching crop statuses:', error)
@@ -326,6 +341,19 @@ export default function GetreidekartePage() {
         {/* Controls */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
+            {/* Map Toggle */}
+            <button
+              onClick={() => setShowMap(!showMap)}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors border ${
+                showMap
+                  ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                  : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+              }`}
+            >
+              <Map className="h-4 w-4" />
+              <span>{showMap ? 'Karte ausblenden' : 'Karte einblenden'}</span>
+            </button>
+
             <div className="flex items-center space-x-2">
               <Filter className="h-4 w-4 text-gray-700" />
               <select
@@ -353,12 +381,36 @@ export default function GetreidekartePage() {
 
           <div className="text-sm text-gray-600">
             {filteredAndSortedCrops.length} von {cropStatuses.length} Kulturen
+            {showMap && ` • ${farms.length} Farmen auf der Karte`}
           </div>
         </div>
       </div>
 
+      {/* Map View */}
+      {showMap && (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Farmen-Übersicht</h3>
+            <p className="text-sm text-gray-600">Interaktive Karte aller Farmen mit Risiko-Status. Klicken Sie auf einen Pin für Details.</p>
+          </div>
+          <InteractiveMap 
+            farms={farms}
+            cropStatuses={cropStatuses}
+            selectedFarmId={selectedFarmId}
+            onFarmClick={(farm) => {
+              setSelectedFarmId(farm.id)
+            }}
+          />
+        </div>
+      )}
+
       {/* Crop Status Cards */}
       <div className="space-y-4">
+        <div className="bg-white p-4 rounded-lg shadow-md">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Kulturen-Details</h3>
+          <p className="text-sm text-gray-600 mb-4">Detaillierte Übersicht aller Kulturen mit Ernte-Empfehlungen.</p>
+        </div>
+        
         {filteredAndSortedCrops.map((crop) => (
           <div key={crop.id} className={`bg-white rounded-lg shadow-md border-l-4 ${getStatusColor(crop.harvestStatus)}`}>
             <div className="p-6">

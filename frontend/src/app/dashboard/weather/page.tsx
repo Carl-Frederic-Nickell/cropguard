@@ -12,7 +12,16 @@ import {
   MapPin,
   Calendar,
   RefreshCw,
-  Plus
+  Plus,
+  AlertTriangle,
+  CheckCircle,
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  Sprout,
+  Zap,
+  Snowflake,
+  CloudDrizzle
 } from 'lucide-react'
 
 interface WeatherData {
@@ -153,23 +162,116 @@ export default function WeatherPage() {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
+  const formatDate = (dateString: string, index: number) => {
     const today = new Date()
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
+    const targetDate = new Date(today)
+    targetDate.setDate(today.getDate() + index)
 
-    if (date.toDateString() === today.toDateString()) {
+    if (index === 0) {
       return 'Heute'
-    } else if (date.toDateString() === tomorrow.toDateString()) {
+    } else if (index === 1) {
       return 'Morgen'
     } else {
-      return date.toLocaleDateString('de-DE', { 
+      return targetDate.toLocaleDateString('de-DE', { 
         weekday: 'short', 
         day: 'numeric', 
         month: 'short' 
       })
     }
+  }
+
+  // Landwirtschaftliche Wetter-Analyse
+  const analyzeWeatherConditions = (weatherData: WeatherResponse) => {
+    const analysis = {
+      fieldWorkSuitability: 'good' as 'good' | 'caution' | 'poor',
+      sprayingConditions: 'good' as 'good' | 'caution' | 'poor',
+      diseaseRisk: 'low' as 'low' | 'medium' | 'high',
+      irrigationNeeded: false,
+      harvestWindow: 'open' as 'open' | 'closing' | 'closed',
+      summary: '',
+      recommendations: [] as string[]
+    }
+
+    const current = weatherData.current
+    const forecast = weatherData.forecast.slice(0, 3)
+
+    // Feldarbeit-Eignung
+    if (current.precipitationMm > 5 || current.windSpeed > 15) {
+      analysis.fieldWorkSuitability = 'poor'
+    } else if (current.precipitationMm > 2 || current.windSpeed > 10) {
+      analysis.fieldWorkSuitability = 'caution'
+    }
+
+    // Spritzfähigkeit
+    if (current.windSpeed > 8 || current.precipitationMm > 1) {
+      analysis.sprayingConditions = 'poor'
+    } else if (current.windSpeed > 5 || current.humidity > 85) {
+      analysis.sprayingConditions = 'caution'
+    }
+
+    // Krankheitsrisiko
+    const avgHumidity = forecast.reduce((sum, day) => sum + day.humidity, 0) / forecast.length
+    const hasRain = forecast.some(day => day.precipitationMm > 1)
+    
+    if (avgHumidity > 85 && hasRain && current.temperature > 15 && current.temperature < 25) {
+      analysis.diseaseRisk = 'high'
+    } else if (avgHumidity > 75 && (hasRain || current.temperature > 20)) {
+      analysis.diseaseRisk = 'medium'
+    }
+
+    // Bewässerungsbedarf
+    const precipitationSum = forecast.reduce((sum, day) => sum + day.precipitationMm, 0)
+    if (precipitationSum < 5 && current.temperature > 25) {
+      analysis.irrigationNeeded = true
+    }
+
+    // Erntefenster
+    const hasHeavyRain = forecast.some(day => day.precipitationMm > 10)
+    const hasStrongWind = forecast.some(day => day.windSpeed > 12)
+    
+    if (hasHeavyRain || hasStrongWind) {
+      analysis.harvestWindow = 'closed'
+    } else if (forecast.some(day => day.precipitationMm > 5)) {
+      analysis.harvestWindow = 'closing'
+    }
+
+    // Empfehlungen generieren
+    if (analysis.fieldWorkSuitability === 'good') {
+      analysis.recommendations.push('Feldarbeiten können durchgeführt werden')
+    } else if (analysis.fieldWorkSuitability === 'poor') {
+      analysis.recommendations.push('Feldarbeiten vermeiden - zu nass/windig')
+    }
+
+    if (analysis.sprayingConditions === 'good') {
+      analysis.recommendations.push('Gute Bedingungen für Pflanzenschutz')
+    } else if (analysis.sprayingConditions === 'poor') {
+      analysis.recommendations.push('Spritzarbeiten wegen Wind/Regen vermeiden')
+    }
+
+    if (analysis.diseaseRisk === 'high') {
+      analysis.recommendations.push('Erhöhtes Pilzkrankheitsrisiko - Monitoring verstärken')
+    }
+
+    if (analysis.irrigationNeeded) {
+      analysis.recommendations.push('Bewässerung in Erwägung ziehen')
+    }
+
+    if (analysis.harvestWindow === 'closed') {
+      analysis.recommendations.push('Ernte verschieben - schlechte Bedingungen')
+    } else if (analysis.harvestWindow === 'open') {
+      analysis.recommendations.push('Günstige Bedingungen für die Ernte')
+    }
+
+    // Zusammenfassung
+    if (analysis.fieldWorkSuitability === 'good' && analysis.sprayingConditions === 'good') {
+      analysis.summary = 'Optimale Bedingungen für Feldarbeiten'
+    } else if (analysis.fieldWorkSuitability === 'poor' || analysis.sprayingConditions === 'poor') {
+      analysis.summary = 'Eingeschränkte Arbeitsmöglichkeiten'
+    } else {
+      analysis.summary = 'Mäßige Bedingungen - Vorsicht geboten'
+    }
+
+    return analysis
   }
 
   if (isLoading && !weatherData) {
@@ -189,7 +291,7 @@ export default function WeatherPage() {
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Wetter Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900">CropGuard Wetter</h1>
             <div className="flex items-center space-x-2 text-gray-600 mt-2">
               <MapPin className="h-4 w-4" />
               <span>{selectedLocation.name}</span>
@@ -320,9 +422,151 @@ export default function WeatherPage() {
 
       {weatherData && (
         <>
-          {/* Current Weather */}
+          {/* Agricultural Weather Analysis */}
+          {(() => {
+            const analysis = analyzeWeatherConditions(weatherData)
+            return (
+              <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900">Landwirtschaftliche Wetteranalyse</h2>
+                  <div className="flex items-center space-x-2">
+                    {analysis.summary.includes('Optimal') ? (
+                      <CheckCircle className="h-6 w-6 text-green-500" />
+                    ) : analysis.summary.includes('Eingeschränkt') ? (
+                      <AlertTriangle className="h-6 w-6 text-red-500" />
+                    ) : (
+                      <Eye className="h-6 w-6 text-yellow-500" />
+                    )}
+                    <span className="font-medium text-gray-900">{analysis.summary}</span>
+                  </div>
+                </div>
+
+                {/* Quick Status Indicators */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                  <div className="text-center p-3 rounded-lg bg-gray-50">
+                    <div className={`inline-block p-2 rounded-full mb-2 ${
+                      analysis.fieldWorkSuitability === 'good' 
+                        ? 'bg-green-100' : analysis.fieldWorkSuitability === 'caution' 
+                        ? 'bg-yellow-100' : 'bg-red-100'
+                    }`}>
+                      <Sprout className={`h-5 w-5 ${
+                        analysis.fieldWorkSuitability === 'good' 
+                          ? 'text-green-600' : analysis.fieldWorkSuitability === 'caution' 
+                          ? 'text-yellow-600' : 'text-red-600'
+                      }`} />
+                    </div>
+                    <div className="text-xs text-gray-600">Feldarbeit</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {analysis.fieldWorkSuitability === 'good' ? 'Gut' : 
+                       analysis.fieldWorkSuitability === 'caution' ? 'Bedingt' : 'Schlecht'}
+                    </div>
+                  </div>
+
+                  <div className="text-center p-3 rounded-lg bg-gray-50">
+                    <div className={`inline-block p-2 rounded-full mb-2 ${
+                      analysis.sprayingConditions === 'good' 
+                        ? 'bg-green-100' : analysis.sprayingConditions === 'caution' 
+                        ? 'bg-yellow-100' : 'bg-red-100'
+                    }`}>
+                      <CloudDrizzle className={`h-5 w-5 ${
+                        analysis.sprayingConditions === 'good' 
+                          ? 'text-green-600' : analysis.sprayingConditions === 'caution' 
+                          ? 'text-yellow-600' : 'text-red-600'
+                      }`} />
+                    </div>
+                    <div className="text-xs text-gray-600">Spritzen</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {analysis.sprayingConditions === 'good' ? 'Gut' : 
+                       analysis.sprayingConditions === 'caution' ? 'Bedingt' : 'Schlecht'}
+                    </div>
+                  </div>
+
+                  <div className="text-center p-3 rounded-lg bg-gray-50">
+                    <div className={`inline-block p-2 rounded-full mb-2 ${
+                      analysis.diseaseRisk === 'low' 
+                        ? 'bg-green-100' : analysis.diseaseRisk === 'medium' 
+                        ? 'bg-yellow-100' : 'bg-red-100'
+                    }`}>
+                      <AlertTriangle className={`h-5 w-5 ${
+                        analysis.diseaseRisk === 'low' 
+                          ? 'text-green-600' : analysis.diseaseRisk === 'medium' 
+                          ? 'text-yellow-600' : 'text-red-600'
+                      }`} />
+                    </div>
+                    <div className="text-xs text-gray-600">Krankheitsrisiko</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {analysis.diseaseRisk === 'low' ? 'Niedrig' : 
+                       analysis.diseaseRisk === 'medium' ? 'Mittel' : 'Hoch'}
+                    </div>
+                  </div>
+
+                  <div className="text-center p-3 rounded-lg bg-gray-50">
+                    <div className={`inline-block p-2 rounded-full mb-2 ${
+                      analysis.irrigationNeeded ? 'bg-blue-100' : 'bg-gray-100'
+                    }`}>
+                      <Droplets className={`h-5 w-5 ${
+                        analysis.irrigationNeeded ? 'text-blue-600' : 'text-gray-400'
+                      }`} />
+                    </div>
+                    <div className="text-xs text-gray-600">Bewässerung</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {analysis.irrigationNeeded ? 'Nötig' : 'Nicht nötig'}
+                    </div>
+                  </div>
+
+                  <div className="text-center p-3 rounded-lg bg-gray-50">
+                    <div className={`inline-block p-2 rounded-full mb-2 ${
+                      analysis.harvestWindow === 'open' 
+                        ? 'bg-green-100' : analysis.harvestWindow === 'closing' 
+                        ? 'bg-yellow-100' : 'bg-red-100'
+                    }`}>
+                      <Calendar className={`h-5 w-5 ${
+                        analysis.harvestWindow === 'open' 
+                          ? 'text-green-600' : analysis.harvestWindow === 'closing' 
+                          ? 'text-yellow-600' : 'text-red-600'
+                      }`} />
+                    </div>
+                    <div className="text-xs text-gray-600">Erntefenster</div>
+                    <div className="text-sm font-medium text-gray-900">
+                      {analysis.harvestWindow === 'open' ? 'Offen' : 
+                       analysis.harvestWindow === 'closing' ? 'Schließend' : 'Geschlossen'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recommendations */}
+                {analysis.recommendations.length > 0 && (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h3 className="font-medium text-blue-900 mb-2 flex items-center">
+                      <Zap className="h-4 w-4 mr-2" />
+                      Handlungsempfehlungen
+                    </h3>
+                    <ul className="space-y-1">
+                      {analysis.recommendations.map((rec, index) => (
+                        <li key={index} className="text-sm text-blue-800 flex items-start">
+                          <span className="mr-2">•</span>
+                          <span>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+
+          {/* Current Weather - Compact */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Aktuelles Wetter</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Aktuelle Bedingungen</h2>
+              <div className="flex items-center space-x-2">
+                {getWeatherIcon(weatherData.current.condition)}
+                <span className="text-lg text-gray-700 capitalize">
+                  {weatherData.current.condition}
+                </span>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="flex items-center justify-center mb-2">
@@ -361,16 +605,7 @@ export default function WeatherPage() {
                     {weatherData.current.windSpeed.toFixed(1)} m/s
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">Windgeschwindigkeit</p>
-              </div>
-            </div>
-
-            <div className="mt-4 text-center">
-              <div className="flex items-center justify-center space-x-2">
-                {getWeatherIcon(weatherData.current.condition)}
-                <span className="text-lg text-gray-700 capitalize">
-                  {weatherData.current.condition}
-                </span>
+                <p className="text-sm text-gray-600">Wind</p>
               </div>
             </div>
 
@@ -442,41 +677,94 @@ export default function WeatherPage() {
 
           {/* 7-Day Forecast */}
           <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">7-Tage Vorhersage</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">7-Tage Wettertrend</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-              {weatherData.forecast.slice(0, 7).map((weather, index) => (
-                <div key={index} className="text-center p-4 border rounded-lg hover:bg-gray-50">
-                  <div className="text-sm font-medium text-gray-900 mb-2">
-                    {formatDate(weather.date)}
-                  </div>
-                  
-                  <div className="flex justify-center mb-2">
-                    {getWeatherIcon(weather.condition)}
-                  </div>
-                  
-                  <div className="text-lg font-bold text-gray-900 mb-1">
-                    {Math.round(weather.temperature)}°C
-                  </div>
-                  
-                  <div className="text-xs text-gray-600 space-y-1">
-                    <div>{weather.humidity}%</div>
-                    <div>{weather.precipitationMm.toFixed(1)}mm</div>
-                    <div>{weather.windSpeed.toFixed(1)} m/s</div>
-                  </div>
-
-                  {weatherData.harvestRecommendations[index] && (
-                    <div className="mt-2">
-                      <div className={`w-3 h-3 rounded-full mx-auto ${
-                        weatherData.harvestRecommendations[index].recommendation === 'good' 
-                          ? 'bg-green-500' 
-                          : weatherData.harvestRecommendations[index].recommendation === 'caution'
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                      }`}></div>
+              {weatherData.forecast.slice(0, 7).map((weather, index) => {
+                const analysis = analyzeWeatherConditions({...weatherData, current: weather, forecast: [weather]})
+                return (
+                  <div key={index} className="text-center p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="text-sm font-medium text-gray-900 mb-2">
+                      {formatDate(weather.date, index)}
                     </div>
-                  )}
-                </div>
-              ))}
+                    
+                    <div className="flex justify-center mb-2">
+                      {getWeatherIcon(weather.condition)}
+                    </div>
+                    
+                    <div className="text-lg font-bold text-gray-900 mb-2">
+                      {Math.round(weather.temperature)}°C
+                    </div>
+                    
+                    <div className="text-xs text-gray-600 space-y-1 mb-3">
+                      <div className="flex items-center justify-center">
+                        <Droplets className="h-3 w-3 mr-1" />
+                        {weather.humidity}%
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <CloudRain className="h-3 w-3 mr-1" />
+                        {weather.precipitationMm.toFixed(1)}mm
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <Wind className="h-3 w-3 mr-1" />
+                        {weather.windSpeed.toFixed(1)} m/s
+                      </div>
+                    </div>
+
+                    {/* Field Work Indicator */}
+                    <div className="flex justify-center space-x-1">
+                      <div className={`w-2 h-2 rounded-full ${
+                        analysis.fieldWorkSuitability === 'good' 
+                          ? 'bg-green-500' : analysis.fieldWorkSuitability === 'caution' 
+                          ? 'bg-yellow-500' : 'bg-red-500'
+                      }`} title="Feldarbeit"></div>
+                      <div className={`w-2 h-2 rounded-full ${
+                        analysis.sprayingConditions === 'good' 
+                          ? 'bg-green-500' : analysis.sprayingConditions === 'caution' 
+                          ? 'bg-yellow-500' : 'bg-red-500'
+                      }`} title="Spritzen"></div>
+                      <div className={`w-2 h-2 rounded-full ${
+                        analysis.harvestWindow === 'open' 
+                          ? 'bg-green-500' : analysis.harvestWindow === 'closing' 
+                          ? 'bg-yellow-500' : 'bg-red-500'
+                      }`} title="Ernte"></div>
+                    </div>
+
+                    {weatherData.harvestRecommendations[index] && (
+                      <div className="mt-2">
+                        <div className={`w-3 h-3 rounded-full mx-auto ${
+                          weatherData.harvestRecommendations[index].recommendation === 'good' 
+                            ? 'bg-green-500' 
+                            : weatherData.harvestRecommendations[index].recommendation === 'caution'
+                            ? 'bg-yellow-500'
+                            : 'bg-red-500'
+                        }`} title={weatherData.harvestRecommendations[index].reason}></div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            
+            {/* Legend */}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="text-sm text-gray-600 text-center">
+                <span className="font-medium">Indikatoren:</span>
+                <span className="inline-flex items-center ml-4 space-x-4">
+                  <span className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                    Feldarbeit
+                  </span>
+                  <span className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                    Spritzen
+                  </span>
+                  <span className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                    Ernte
+                  </span>
+                  <span className="ml-4">🟢 Gut • 🟡 Bedingt • 🔴 Schlecht</span>
+                </span>
+              </div>
             </div>
           </div>
         </>

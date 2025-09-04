@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CloudRain, Thermometer, Droplets, Wind, Calendar, MapPin, Sun, Cloud, CloudSnow, AlertTriangle, XCircle, Clock } from 'lucide-react'
+import { CloudRain, Thermometer, Droplets, Wind, Calendar, MapPin, Sun, Cloud, CloudSnow, AlertTriangle, XCircle, Clock, Wheat, Sprout, TreePine, Apple, Circle, X, Map } from 'lucide-react'
 
 interface WeatherData {
   current: {
@@ -29,6 +29,78 @@ export default function DashboardPage() {
   const [farmStats, setFarmStats] = useState({ farms: 0, crops: 0 })
   const [weatherRisks, setWeatherRisks] = useState<any[]>([])
   const [fieldRiskGraphs, setFieldRiskGraphs] = useState<any[]>([])
+  const [showFirstSteps, setShowFirstSteps] = useState(true)
+  const [selectedCropTypes, setSelectedCropTypes] = useState<string[]>([])
+  const [availableCropTypes, setAvailableCropTypes] = useState<string[]>([])
+  const [showAllWarnings, setShowAllWarnings] = useState(true)
+
+  // Calculate humidity risk with context for German agriculture
+  const calculateHumidityRisk = (humidity: number, date: Date, cropType: string) => {
+    const month = date.getMonth() + 1 // 1-12
+    const isWinter = month >= 11 || month <= 2
+    const isSpring = month >= 3 && month <= 5
+    const isSummer = month >= 6 && month <= 8
+    const isAutumn = month >= 9 && month <= 10
+    
+    // Crop-specific humidity tolerances
+    const cropTolerances: { [key: string]: { critical: number, warning: number } } = {
+      'weizen': { critical: 95, warning: 88 },
+      'gerste': { critical: 95, warning: 88 },
+      'raps': { critical: 92, warning: 85 },
+      'mais': { critical: 96, warning: 90 },
+      'sonnenblumen': { critical: 90, warning: 82 }
+    }
+    
+    const tolerance = cropTolerances[cropType.toLowerCase()] || { critical: 93, warning: 85 }
+    
+    // Base risk assessment
+    let riskScore = 0
+    let riskType = 'Feuchtigkeit'
+    let info = ''
+    let recommendation = ''
+    
+    if (humidity >= tolerance.critical) {
+      // Critical humidity levels
+      riskScore = Math.min(35, (humidity - tolerance.critical) * 5 + 25)
+      riskType = 'Kritische Feuchtigkeit'
+      
+      if (isWinter) {
+        info = 'Sehr hohe Feuchtigkeit im Winter - typisch aber problematisch für Lagergetreide'
+        recommendation = 'Lagergetreide auf Schimmelbefall prüfen, Belüftung sicherstellen'
+      } else if (isSpring || isAutumn) {
+        info = 'Kritische Feuchtigkeit - erhöhtes Pilzkrankheitsrisiko'
+        recommendation = 'Fungizid-Behandlung prüfen, Feldbegehung für Pilzkrankheiten'
+      } else {
+        info = 'Sehr hohe Sommerfeuchtigkeit - Pilzkrankheiten und Schädlingsrisiko'
+        recommendation = 'Sofortige Feldkontrolle, evtl. Behandlung erforderlich'
+      }
+    } else if (humidity >= tolerance.warning) {
+      // Elevated humidity levels
+      riskScore = Math.min(20, (humidity - tolerance.warning) * 2.5)
+      riskType = 'Erhöhte Feuchtigkeit'
+      
+      if (isWinter) {
+        info = 'Normale Winterfeuchtigkeit - für Vegetation unkritisch'
+        recommendation = 'Routine-Überwachung ausreichend'
+      } else if (isSpring) {
+        info = 'Frühjahrsfeuchtigkeit begünstigt Pilzkrankheiten'
+        recommendation = 'Präventive Maßnahmen gegen Pilzkrankheiten erwägen'
+      } else if (isSummer) {
+        info = 'Hohe Sommerfeuchtigkeit - Pilzkrankheitsrisiko'
+        recommendation = 'Feldbegehung für Krankheitssymptome'
+      } else {
+        info = 'Herbstfeuchtigkeit - normal aber Erntequalität beachten'
+        recommendation = 'Erntequalität und Trocknungsbedarf prüfen'
+      }
+    }
+    
+    return {
+      score: riskScore,
+      type: riskType,
+      info,
+      recommendation
+    }
+  }
 
   useEffect(() => {
     fetchWeatherData()
@@ -99,12 +171,15 @@ export default function DashboardPage() {
                       })
                     }
                     
-                    // High humidity risk
-                    if (day.humidity > 85) {
+                    // Improved humidity risk with context
+                    const humidityRisk = calculateHumidityRisk(day.humidity, date, crop.type)
+                    if (humidityRisk.score > 0) {
                       riskFactors.push({
-                        type: 'Hohe Feuchtigkeit',
-                        severity: day.humidity > 90 ? 'high' : 'medium',
-                        value: `${day.humidity}%`
+                        type: humidityRisk.type,
+                        severity: humidityRisk.score > 25 ? 'high' : 'medium',
+                        value: `${day.humidity}%`,
+                        info: humidityRisk.info,
+                        recommendation: humidityRisk.recommendation
                       })
                     }
                     
@@ -157,7 +232,7 @@ export default function DashboardPage() {
           return dateCompare
         })
         
-        setWeatherRisks(risks.slice(0, 10)) // Limit to 10 most critical risks
+        setWeatherRisks(risks) // Keep all risks for filtering
       }
     } catch (error) {
       console.error('Error fetching weather risks:', error)
@@ -212,11 +287,17 @@ export default function DashboardPage() {
                     riskFactors.push({ type: 'Niederschlag', score: precipRisk, value: `${dayData.precipitation.toFixed(1)}mm` })
                   }
                   
-                  // Humidity risk
-                  if (dayData.humidity > 85) {
-                    const humidityRisk = Math.min(30, (dayData.humidity - 85) * 2)
-                    riskScore += humidityRisk
-                    riskFactors.push({ type: 'Feuchtigkeit', score: humidityRisk, value: `${dayData.humidity}%` })
+                  // Improved humidity risk with context
+                  const humidityRisk = calculateHumidityRisk(dayData.humidity, date, crop.type)
+                  if (humidityRisk.score > 0) {
+                    riskScore += humidityRisk.score
+                    riskFactors.push({ 
+                      type: humidityRisk.type, 
+                      score: humidityRisk.score, 
+                      value: `${dayData.humidity}%`,
+                      info: humidityRisk.info,
+                      recommendation: humidityRisk.recommendation
+                    })
                   }
                   
                   // Wind risk
@@ -266,6 +347,15 @@ export default function DashboardPage() {
         // Sort by highest average risk
         fieldGraphs.sort((a, b) => b.maxRisk - a.maxRisk)
         
+        // Extract unique crop types
+        const uniqueCropTypes = [...new Set(fieldGraphs.map(field => field.cropType))]
+        setAvailableCropTypes(uniqueCropTypes)
+        
+        // Set all crops as selected by default if none are selected
+        if (selectedCropTypes.length === 0) {
+          setSelectedCropTypes(uniqueCropTypes)
+        }
+        
         setFieldRiskGraphs(fieldGraphs)
       }
     } catch (error) {
@@ -286,6 +376,133 @@ export default function DashboardPage() {
     if (riskScore >= 40) return 'text-yellow-600'
     if (riskScore >= 20) return 'text-orange-500'
     return 'text-green-600'
+  }
+
+  const getCropIcon = (cropType: string) => {
+    const lowerType = cropType.toLowerCase()
+    switch (lowerType) {
+      case 'weizen': return <Wheat className="h-5 w-5" />
+      case 'gerste': return <Wheat className="h-5 w-5" />
+      case 'raps': return <Sprout className="h-5 w-5" />
+      case 'mais': return <Circle className="h-5 w-5" />
+      case 'sonnenblumen': return <Apple className="h-5 w-5" />
+      case 'kartoffeln': return <TreePine className="h-5 w-5" />
+      case 'zuckerrueben': return <TreePine className="h-5 w-5" />
+      case 'tomaten': return <Apple className="h-5 w-5" />
+      default: return <Wheat className="h-5 w-5" />
+    }
+  }
+
+  const getStatusBadge = (avgRisk: number) => {
+    if (avgRisk <= 15) return { text: 'Optimal', color: 'bg-green-500 text-white' }
+    if (avgRisk <= 40) return { text: 'Akzeptabel', color: 'bg-yellow-500 text-white' }
+    return { text: 'Problematisch', color: 'bg-red-500 text-white' }
+  }
+
+  const getIntelligentHarvestAdvice = (cropType: string, currentWeather: any, criteria: any) => {
+    const temp = currentWeather.temperature || 0
+    const humidity = currentWeather.humidity || 0
+    
+    // Calculate deltas
+    const tempInRange = temp >= criteria.minTemp && temp <= criteria.maxTemp
+    const humidityOK = humidity <= criteria.maxHumidity
+    const tempDelta = tempInRange ? 0 : (temp < criteria.minTemp ? criteria.minTemp - temp : temp - criteria.maxTemp)
+    const humidityDelta = humidityOK ? 0 : humidity - criteria.maxHumidity
+    
+    // Get current season/month for harvest timing
+    const now = new Date()
+    const month = now.getMonth() + 1 // 1-12
+    
+    // Harvest timing by crop type (simplified for demo)
+    const harvestMonths = {
+      weizen: [7, 8, 9], // Juli-September
+      gerste: [6, 7, 8], // Juni-August  
+      raps: [7, 8], // Juli-August
+      mais: [9, 10, 11], // September-November
+      kartoffeln: [8, 9, 10], // August-Oktober
+      zuckerrueben: [10, 11], // Oktober-November
+    }
+    
+    const cropMonths = harvestMonths[cropType.toLowerCase()] || [8, 9]
+    const isHarvestSeason = cropMonths.includes(month)
+    
+    // Generate intelligent advice
+    if (tempInRange && humidityOK && isHarvestSeason) {
+      return {
+        type: 'optimal',
+        icon: '🟢',
+        title: 'Perfekte Erntebedingungen!',
+        advice: `Alle Parameter im optimalen Bereich. Jetzt ernten für beste Qualität und minimale Lagerverluste.`
+      }
+    }
+    
+    if (!isHarvestSeason) {
+      const nextSeason = cropMonths[0] > month ? `${cropMonths[0]}.` : `${cropMonths[0]} (nächstes Jahr)`
+      return {
+        type: 'timing',
+        icon: '📅',
+        title: 'Erntezeitpunkt beachten',
+        advice: `${cropType} wird normalerweise zwischen ${cropMonths.join('-')}. Monat geerntet. Nächste Erntezeit: ${nextSeason}`
+      }
+    }
+    
+    if (!tempInRange && !humidityOK) {
+      return {
+        type: 'critical',
+        icon: '🔴',
+        title: 'Kritische Bedingungen',
+        advice: `Temperatur ${tempDelta.toFixed(1)}°C ${temp > criteria.maxTemp ? 'zu hoch' : 'zu niedrig'}, Feuchtigkeit ${humidityDelta.toFixed(1)}% über Limit. Ernte verschieben bis sich Bedingungen verbessern.`
+      }
+    }
+    
+    if (!tempInRange) {
+      const tempAdvice = temp > criteria.maxTemp 
+        ? `${tempDelta.toFixed(1)}°C zu warm - Vormittags oder Abends ernten`
+        : `${tempDelta.toFixed(1)}°C zu kalt - Mittagsernte abwarten`
+      
+      return {
+        type: 'temperature',
+        icon: '🟡',
+        title: 'Temperatur suboptimal',
+        advice: tempAdvice + '. Feuchtigkeit ist OK.'
+      }
+    }
+    
+    if (!humidityOK) {
+      return {
+        type: 'humidity',
+        icon: '🟡', 
+        title: 'Feuchtigkeit zu hoch',
+        advice: `${humidityDelta.toFixed(1)}% über Limit. Warten auf trockenere Bedingungen oder erhöhte Trocknungskosten einkalkulieren.`
+      }
+    }
+    
+    return {
+      type: 'acceptable',
+      icon: '🟡',
+      title: 'Akzeptable Bedingungen', 
+      advice: 'Ernte möglich, aber nicht optimal. Lagerung und Qualität überwachen.'
+    }
+  }
+
+  const getCropCriteria = (cropType: string) => {
+    const lowerType = cropType.toLowerCase()
+    switch (lowerType) {
+      case 'weizen':
+        return { minTemp: 22, maxTemp: 26, maxHumidity: 60 }
+      case 'gerste':
+        return { minTemp: 18, maxTemp: 24, maxHumidity: 17 }
+      case 'raps':
+        return { minTemp: 20, maxTemp: 25, maxHumidity: 40 }
+      case 'mais':
+        return { minTemp: 15, maxTemp: 30, maxHumidity: 20 }
+      case 'kartoffeln':
+        return { minTemp: 10, maxTemp: 18, maxHumidity: 75 }
+      case 'zuckerrueben':
+        return { minTemp: 8, maxTemp: 15, maxHumidity: 80 }
+      default:
+        return { minTemp: 15, maxTemp: 25, maxHumidity: 70 }
+    }
   }
 
   const geocodeLocation = async (location: string) => {
@@ -466,11 +683,51 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
-          Dashboard Übersicht
+          CropGuard Dashboard
         </h1>
-        <p className="text-gray-600">
-          Willkommen zurück, Test User! Hier ist eine Übersicht über Ihre landwirtschaftlichen Aktivitäten.
-        </p>
+        {(() => {
+          // Dynamische Willkommensnachrichten mit landwirtschaftlichen Fakten
+          const dailyMessages = [
+            "Wussten Sie, dass ein Weizenkorn bis zu 20 neue Pflanzen hervorbringen kann? Eine kleine Investition mit großer Wirkung!",
+            "Heute perfektes Wetter für die Feldarbeit? Denken Sie daran: Der beste Boden ist wie ein guter Freund - er braucht Pflege und Aufmerksamkeit.",
+            "Landwirtschaftlicher Tipp: Regenwürmer sind die unbesungenen Helden Ihrer Felder - sie produzieren täglich ihr eigenes Gewicht an wertvollen Wurmkot!",
+            "Interessant: Mais kann bis zu 2 Meter pro Woche wachsen! Kein Wunder, dass Landwirte sagen: 'Man kann ihm beim Wachsen zusehen.'",
+            "Nachhaltigkeit zahlt sich aus: Fruchtfolgen können den Ertrag um bis zu 30% steigern und gleichzeitig den Boden schützen.",
+            "Wetterfakt: Die optimale Temperatur für Getreidewachstum liegt zwischen 15-25°C. Ihre Pflanzen sind echte Goldlöckchen!",
+            "Precision Farming wird immer wichtiger: Drohnen können heute Pflanzenschäden bis auf wenige Zentimeter genau lokalisieren.",
+            "Herbst-Weisheit: Jetzt ist die beste Zeit für Bodenproben - der Boden verrät Ihnen seine Geheimnisse für die nächste Saison!",
+            "Faszinierend: Ein Hektar Raps kann so viel Sauerstoff produzieren wie 60 Menschen pro Jahr verbrauchen. Echte Naturhelden!",
+            "Bodenschutz-Tipp: Zwischenfruchtanbau kann Erosion um bis zu 90% reduzieren. Kleine Pflanzen, große Wirkung!",
+            "Innovation: Moderne GPS-Systeme ermöglichen Parallelfahrten mit nur 2cm Abweichung - Präzision auf höchstem Niveau!",
+            "Biodiversität: Ein gesundes Feld beherbergt über 1000 verschiedene Arten - von Mikroorganismen bis zu Vögeln.",
+            "Märkte im Blick: Getreidepreise schwanken oft saisonal - der Herbst kann goldene Chancen bieten!",
+            "Klimawandel-Anpassung: Trockenresistente Sorten können Erträge auch in schwierigen Jahren sichern.",
+            "Technologie-Trend: Smart Farming Apps können den Düngemitteleinsatz um bis zu 20% optimieren!"
+          ]
+          
+          // Basiert auf dem aktuellen Tag des Jahres für konsistente tägliche Nachrichten
+          const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000)
+          const todaysMessage = dailyMessages[dayOfYear % dailyMessages.length]
+          
+          return (
+            <div>
+              <p className="text-gray-600 mb-3">
+                Willkommen zurück, Carl! Hier ist eine Übersicht über Ihre landwirtschaftlichen Aktivitäten.
+              </p>
+              <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <span className="text-2xl">💡</span>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-green-800">Täglicher Landwirtschafts-Tipp</h3>
+                    <p className="text-sm text-green-700 mt-1">{todaysMessage}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -481,7 +738,7 @@ export default function DashboardPage() {
               <p className="text-2xl font-bold text-gray-900">{farmStats.farms}</p>
             </div>
             <div className="p-3 bg-green-100 rounded-full">
-              <CloudRain className="h-6 w-6 text-green-600" />
+              <Map className="h-6 w-6 text-green-600" />
             </div>
           </div>
         </div>
@@ -493,7 +750,7 @@ export default function DashboardPage() {
               <p className="text-2xl font-bold text-gray-900">{farmStats.crops}</p>
             </div>
             <div className="p-3 bg-blue-100 rounded-full">
-              <Thermometer className="h-6 w-6 text-blue-600" />
+              <Sprout className="h-6 w-6 text-blue-600" />
             </div>
           </div>
         </div>
@@ -515,7 +772,7 @@ export default function DashboardPage() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Niederschlag</p>
+              <p className="text-sm font-medium text-gray-600">Niederschlag (aktuell)</p>
               <p className="text-2xl font-bold text-gray-900">
                 {isLoading ? '--mm' : `${weatherData?.current.precipitation || 0}mm`}
               </p>
@@ -527,12 +784,44 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Erste Schritte - Closeable */}
+      {showFirstSteps && (
+        <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg text-gray-900">Erste Schritte</h2>
+            <button 
+              onClick={() => setShowFirstSteps(false)}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a
+              href="/dashboard/farms"
+              className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors"
+            >
+              <h3 className="font-medium text-gray-900">Feld hinzufügen</h3>
+              <p className="text-gray-600 text-sm">Fügen Sie Ihr erstes Feld hinzu und beginnen Sie mit der Überwachung.</p>
+            </a>
+            
+            <a
+              href="/dashboard/weather"
+              className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            >
+              <h3 className="font-medium text-gray-900">Wetter prüfen</h3>
+              <p className="text-gray-600 text-sm">Überprüfen Sie die Wettervorhersage für optimale Erntebedingungen.</p>
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* 7-Tage Wettervorhersage */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Calendar className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">7-Tage Wettervorhersage</h2>
+            <h2 className="text-lg text-gray-900">7-Tage Wettervorhersage</h2>
           </div>
           
           <form onSubmit={handleLocationSubmit} className="flex items-center space-x-2">
@@ -561,7 +850,7 @@ export default function DashboardPage() {
           <div className="flex justify-between gap-2 overflow-x-auto pb-2">
             {getDailyForecast(weatherData.forecast).map((day, index) => (
               <div key={index} className="flex-1 text-center p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
-                <div className="text-sm font-semibold text-gray-800 mb-2">
+                <div className="text-sm text-gray-800 mb-2">
                   {day.date.toLocaleDateString('de-DE', { 
                     weekday: 'short',
                     day: 'numeric'
@@ -607,39 +896,64 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <AlertTriangle className="h-5 w-5 text-red-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Wetterrisiken (7 Tage)</h2>
+            <h2 className="text-lg text-gray-900">Wetterrisiken (7 Tage)</h2>
           </div>
           <div className="text-sm text-gray-600">
-            {weatherRisks.length} aktive Warnungen
+            {weatherRisks
+              .filter(risk => selectedCropTypes.length === 0 || selectedCropTypes.includes(risk.cropType))
+              .filter(risk => showAllWarnings || risk.risks.some((r: any) => r.severity === 'high'))
+              .length} aktive Warnungen
           </div>
         </div>
         
-        {weatherRisks.length > 0 ? (
+        {weatherRisks
+          .filter(risk => selectedCropTypes.length === 0 || selectedCropTypes.includes(risk.cropType))
+          .filter(risk => showAllWarnings || risk.risks.some((r: any) => r.severity === 'high'))
+          .slice(0, 10)
+          .length > 0 ? (
           <div className="space-y-3 max-h-80 overflow-y-auto">
-            {weatherRisks.map((risk, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border-l-4 border-red-400">
-                <div className="flex items-center space-x-4">
-                  <div className="text-center">
-                    <div className="text-sm font-medium text-gray-900">{risk.dayName}</div>
-                    <div className="text-xs text-gray-600">{risk.dateFormatted}</div>
+            {weatherRisks
+              .filter(risk => selectedCropTypes.length === 0 || selectedCropTypes.includes(risk.cropType))
+              .filter(risk => showAllWarnings || risk.risks.some((r: any) => r.severity === 'high'))
+              .slice(0, 10)
+              .map((risk, index) => (
+              <div key={index} className={`p-4 rounded-lg border-l-4 min-h-[120px] w-full ${
+                risk.risks.some((r: any) => r.severity === 'high') 
+                  ? 'bg-red-100 border-red-500' 
+                  : 'bg-yellow-100 border-yellow-500'
+              }`}>
+                <div className="grid grid-cols-2 gap-4 h-full">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-center">
+                      <div className="text-sm font-medium text-gray-900">{risk.dayName}</div>
+                      <div className="text-xs text-gray-600">{risk.dateFormatted}</div>
+                    </div>
+                    
+                    <div>
+                      <div className="font-medium text-gray-900">{risk.farmName}</div>
+                      <div className="text-sm text-gray-600">{risk.cropName} ({risk.cropType})</div>
+                    </div>
                   </div>
                   
-                  <div>
-                    <div className="font-medium text-gray-900">{risk.farmName}</div>
-                    <div className="text-sm text-gray-600">{risk.cropName} ({risk.cropType})</div>
+                  <div className="flex flex-col gap-2">
+                    {risk.risks.map((r: any, rIndex: number) => (
+                      <div key={rIndex} className="p-2 rounded border bg-white">
+                        <div className="font-semibold text-sm text-gray-900">
+                          {r.type}: {r.value}
+                        </div>
+                        {r.info && (
+                          <div className="text-xs mt-1 text-gray-700">
+                            {r.info}
+                          </div>
+                        )}
+                        {r.recommendation && (
+                          <div className="text-xs mt-1 font-semibold text-gray-900">
+                            💡 {r.recommendation}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-1">
-                  {risk.risks.map((r: any, rIndex: number) => (
-                    <div key={rIndex} className={`px-2 py-1 rounded text-xs font-medium ${
-                      r.severity === 'high' 
-                        ? 'bg-red-100 text-red-800' 
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {r.type}: {r.value}
-                    </div>
-                  ))}
                 </div>
               </div>
             ))}
@@ -652,173 +966,344 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Field Risk Timeline Graphs */}
+      {/* Field Risk Cards - Screenshot Style */}
       {fieldRiskGraphs.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center justify-between mb-6">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Calendar className="h-5 w-5 text-blue-600" />
-              <h2 className="text-lg font-semibold text-gray-900">7-Tage Risiko-Verlauf pro Feld</h2>
-            </div>
-            <div className="flex items-center space-x-4 text-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-300 rounded"></div>
-                <span className="text-gray-600">Niedrig</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-                <span className="text-gray-600">Mittel</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span className="text-gray-600">Hoch</span>
-              </div>
+              <h2 className="text-lg text-gray-900">7-Tage Ernte-Analyse pro Feld</h2>
             </div>
           </div>
           
-          <div className="space-y-6 max-h-96 overflow-y-auto">
-            {fieldRiskGraphs.map((field, index) => (
-              <div key={index} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{field.farmName}</h3>
-                    <p className="text-sm text-gray-600">{field.cropName} ({field.cropType}) • {field.farmLocation}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className={`text-lg font-bold ${getRiskTextColor(field.maxRisk)}`}>
-                      Max: {field.maxRisk}%
-                    </div>
-                    <div className="text-sm text-gray-600">Ø {field.avgRisk}%</div>
-                  </div>
-                </div>
-                
-                {/* Risk Graph */}
-                <div className="mb-4">
-                  {/* Weekdays Header */}
-                  <div className="flex items-end mb-2 h-24">
-                    <div className="w-16"></div> {/* Space for y-axis labels */}
-                    {field.dailyRisks.map((day: any, dayIndex: number) => (
-                      <div key={dayIndex} className="flex-1 text-center">
-                        <div className="text-xs font-medium text-gray-700">{day.dayName}</div>
-                        <div className="text-xs text-gray-600">{day.dayNumber}</div>
+          {/* Crop Filter Menu */}
+          <div className="bg-white p-4 rounded-lg shadow-sm border">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-900">Filter nach Kulturen:</h3>
+              <div className="flex items-center space-x-4">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={showAllWarnings}
+                    onChange={(e) => setShowAllWarnings(e.target.checked)}
+                    className="text-orange-600 focus:ring-orange-500"
+                  />
+                  <span className="text-sm text-gray-700">Alle Warnungen anzeigen</span>
+                </label>
+                <button
+                  onClick={() => setSelectedCropTypes(availableCropTypes)}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Alle auswählen
+                </button>
+                <button
+                  onClick={() => setSelectedCropTypes([])}
+                  className="text-sm text-gray-600 hover:text-gray-800"
+                >
+                  Alle abwählen
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {availableCropTypes.map((cropType) => {
+                const isSelected = selectedCropTypes.includes(cropType)
+                return (
+                  <label
+                    key={cropType}
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-md cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'bg-green-100 border-2 border-green-500 text-green-700'
+                        : 'bg-gray-100 border-2 border-gray-300 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCropTypes([...selectedCropTypes, cropType])
+                        } else {
+                          setSelectedCropTypes(selectedCropTypes.filter(t => t !== cropType))
+                        }
+                      }}
+                      className="text-green-600 focus:ring-green-500"
+                    />
+                    <span className="flex items-center space-x-1">
+                      {getCropIcon(cropType)}
+                      <span className="font-medium capitalize">{cropType}</span>
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+            {selectedCropTypes.length > 0 && (
+              <div className="mt-3 text-sm text-gray-600">
+                {selectedCropTypes.length === availableCropTypes.length
+                  ? 'Alle Kulturen ausgewählt'
+                  : `${selectedCropTypes.length} von ${availableCropTypes.length} Kulturen ausgewählt`
+                }
+              </div>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-6">
+            {fieldRiskGraphs
+              .filter(field => selectedCropTypes.includes(field.cropType))
+              .filter(field => showAllWarnings || field.maxRisk > 0)
+              .map((field, index) => {
+              const status = getStatusBadge(field.avgRisk)
+              const criteria = getCropCriteria(field.cropType)
+              const currentWeather = field.dailyRisks[0]?.weather || {}
+              
+              return (
+                <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden border-l-4" 
+                     style={{ borderLeftColor: status.text === 'Optimal' ? '#10b981' : status.text === 'Akzeptabel' ? '#f59e0b' : '#ef4444' }}>
+                  {/* Header */}
+                  <div className="p-4" style={{ 
+                    background: status.text === 'Optimal' ? '#10b981' : status.text === 'Akzeptabel' ? '#f59e0b' : '#ef4444' 
+                  }}>
+                    <div className="flex items-center justify-between text-white">
+                      <div className="flex items-center space-x-2">
+                        {getCropIcon(field.cropType)}
+                        <span className="font-semibold capitalize">{field.cropType}</span>
                       </div>
-                    ))}
+                      <div className="w-3 h-3 bg-white rounded-full opacity-80"></div>
+                    </div>
                   </div>
                   
-                  {/* Graph Area */}
-                  <div className="relative bg-gray-50 rounded-lg p-3" style={{ height: '120px' }}>
-                    {/* Y-axis labels */}
-                    <div className="absolute left-1 top-0 h-full flex flex-col justify-between text-xs text-gray-500 py-1">
-                      <span>100%</span>
-                      <span>75%</span>
-                      <span>50%</span>
-                      <span>25%</span>
-                      <span>0%</span>
+                  {/* Status Badge */}
+                  <div className="px-4 py-2 bg-gray-50">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm " style={{color: '#000000'}}>Status:</span>
+                      <span className={`text-sm px-2 py-1 rounded ${status.color}`}>{status.text}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="p-4">
+                    {/* Farm Info */}
+                    <div className="mb-4">
+                      <h3 className="text-gray-900">{field.farmName}</h3>
+                      <p className="text-sm text-gray-600">{field.cropName} • {field.farmLocation}</p>
                     </div>
                     
-                    {/* Grid lines */}
-                    <div className="absolute inset-0 ml-12 mr-2">
-                      <div className="h-full relative">
-                        <div className="absolute w-full border-t border-gray-300" style={{ top: '0%' }}></div>
-                        <div className="absolute w-full border-t border-gray-200" style={{ top: '25%' }}></div>
-                        <div className="absolute w-full border-t border-gray-200" style={{ top: '50%' }}></div>
-                        <div className="absolute w-full border-t border-gray-200" style={{ top: '75%' }}></div>
-                        <div className="absolute w-full border-t border-gray-300" style={{ bottom: '0%' }}></div>
+                    {/* Optimal Conditions */}
+                    <div className="mb-4">
+                      <div className="mb-3">
+                        <span className="text-sm " style={{color: '#000000'}}>Optimale Bedingungen vs. Ist-Werte:</span>
                       </div>
-                    </div>
-                    
-                    {/* Risk Bars */}
-                    <div className="flex items-end h-full ml-12 mr-2">
-                      {field.dailyRisks.map((day: any, dayIndex: number) => (
-                        <div key={dayIndex} className="flex-1 flex justify-center items-end h-full px-1">
-                          <div className="relative w-8 h-full flex items-end">
-                            <div 
-                              className={`w-full rounded-t ${getRiskColor(day.riskScore)} transition-all duration-500 hover:opacity-80 cursor-pointer`}
-                              style={{ height: `${Math.max(day.riskScore, 2)}%` }}
-                              title={`${day.dayName}: ${day.riskScore}% Risiko\n${Math.round(day.weather.temperature)}°C${day.weather.precipitation > 0 ? `, ${day.weather.precipitation.toFixed(1)}mm` : ''}`}
-                            >
-                              {/* Risk percentage label on top of bar */}
-                              {day.riskScore > 15 && (
-                                <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700">
-                                  {day.riskScore}%
-                                </div>
-                              )}
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Luftfeuchtigkeit */}
+                        <div className="space-y-2">
+                          <div className="text-xs  mb-1" style={{color: '#000000'}}>Luftfeuchtigkeit</div>
+                          
+                          {/* Soll-Wert */}
+                          <div className="bg-blue-50 border border-blue-200 rounded px-2 py-1">
+                            <div className="text-xs " style={{color: '#000000'}}>Soll-Wert:</div>
+                            <div className="" style={{color: '#000000'}}>≤ {criteria.maxHumidity}%</div>
+                          </div>
+                          
+                          {/* Ist-Wert */}
+                          <div className="bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                            <div className="text-xs " style={{color: '#000000'}}>Ist-Wert:</div>
+                            <div className="" style={{color: '#000000'}}>{Math.round(currentWeather.humidity || 0)}%</div>
+                          </div>
+                          
+                          {/* Delta */}
+                          <div className={`border rounded px-2 py-1 ${
+                            (currentWeather.humidity || 0) <= criteria.maxHumidity 
+                              ? 'bg-green-50 border-green-200' 
+                              : 'bg-red-50 border-red-200'
+                          }`}>
+                            <div className="text-xs " style={{color: '#000000'}}>Delta:</div>
+                            <div className="" style={{color: '#000000'}}>
+                              {(currentWeather.humidity || 0) <= criteria.maxHumidity 
+                                ? `✓ ${criteria.maxHumidity - Math.round(currentWeather.humidity || 0)}% unter Limit`
+                                : `⚠ ${Math.round(currentWeather.humidity || 0) - criteria.maxHumidity}% über Limit`
+                              }
                             </div>
                           </div>
                         </div>
-                      ))}
+
+                        {/* Temperatur */}
+                        <div className="space-y-2">
+                          <div className="text-xs  mb-1" style={{color: '#000000'}}>Temperatur</div>
+                          
+                          {/* Soll-Wert */}
+                          <div className="bg-red-50 border border-red-200 rounded px-2 py-1">
+                            <div className="text-xs " style={{color: '#000000'}}>Soll-Wert:</div>
+                            <div className="" style={{color: '#000000'}}>{criteria.minTemp}°C - {criteria.maxTemp}°C</div>
+                          </div>
+                          
+                          {/* Ist-Wert */}
+                          <div className="bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                            <div className="text-xs " style={{color: '#000000'}}>Ist-Wert:</div>
+                            <div className="" style={{color: '#000000'}}>{Math.round(currentWeather.temperature || 0)}°C</div>
+                          </div>
+                          
+                          {/* Delta */}
+                          <div className={`border rounded px-2 py-1 ${
+                            (currentWeather.temperature || 0) >= criteria.minTemp && (currentWeather.temperature || 0) <= criteria.maxTemp
+                              ? 'bg-green-50 border-green-200' 
+                              : 'bg-red-50 border-red-200'
+                          }`}>
+                            <div className="text-xs " style={{color: '#000000'}}>Delta:</div>
+                            <div className="" style={{color: '#000000'}}>
+                              {(currentWeather.temperature || 0) >= criteria.minTemp && (currentWeather.temperature || 0) <= criteria.maxTemp
+                                ? '✓ Im optimalen Bereich'
+                                : (currentWeather.temperature || 0) < criteria.minTemp
+                                ? `⚠ ${criteria.minTemp - Math.round(currentWeather.temperature || 0)}°C zu kalt`
+                                : `⚠ ${Math.round(currentWeather.temperature || 0) - criteria.maxTemp}°C zu warm`
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Intelligent Harvest Advice */}
+                    {(() => {
+                      const harvestAdvice = getIntelligentHarvestAdvice(field.cropType, currentWeather, criteria)
+                      const bgColor = {
+                        'optimal': 'bg-green-50',
+                        'acceptable': 'bg-yellow-50', 
+                        'temperature': 'bg-orange-50',
+                        'humidity': 'bg-blue-50',
+                        'critical': 'bg-red-50',
+                        'timing': 'bg-purple-50'
+                      }[harvestAdvice.type] || 'bg-gray-50'
+                      
+                      return (
+                        <div className={`mb-4 p-3 ${bgColor} rounded-lg border`}>
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-lg">{harvestAdvice.icon}</span>
+                            <span className="text-sm " style={{color: '#000000'}}>{harvestAdvice.title}</span>
+                          </div>
+                          <p className="text-sm " style={{color: '#000000'}}>
+                            {harvestAdvice.advice}
+                          </p>
+                        </div>
+                      )
+                    })()}
+                    
+                    {/* 7-Day Graph */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-sm font-medium text-gray-900">7-Tage Wettertrend</h4>
+                        <div className="flex space-x-2 text-xs text-gray-500">
+                          <span>Min. {Math.min(...field.dailyRisks.map((d: any) => d.weather.temperature)).toFixed(0)}°C</span>
+                          <span>Max. {Math.max(...field.dailyRisks.map((d: any) => d.weather.temperature)).toFixed(0)}°C</span>
+                        </div>
+                      </div>
+                      
+                      {/* Enhanced Graph */}
+                      <div className="relative bg-gray-50 rounded p-2 border" style={{ height: '150px' }}>
+                        <svg className="absolute" style={{ left: '8px', right: '8px', top: '4px', bottom: '4px' }} 
+                             width="calc(100% - 16px)" height="calc(100% - 8px)" viewBox="0 0 500 140">
+                          
+                          {/* Temperature line */}
+                          <polyline
+                            points={field.dailyRisks.map((day: any, i: number) => 
+                              `${(i * 70) + 40},${Math.max(15, Math.min(125, 140 - (day.weather.temperature / 40 * 125)))}`
+                            ).join(' ')}
+                            fill="none"
+                            stroke="#ef4444"
+                            strokeWidth="3"
+                          />
+                          
+                          {/* Humidity line */}
+                          <polyline
+                            points={field.dailyRisks.map((day: any, i: number) => 
+                              `${(i * 70) + 40},${Math.max(15, Math.min(125, 140 - (day.weather.humidity / 100 * 125)))}`
+                            ).join(' ')}
+                            fill="none"
+                            stroke="#3b82f6"
+                            strokeWidth="3"
+                          />
+                          
+                          {/* Temperature points with values */}
+                          {field.dailyRisks.map((day: any, i: number) => {
+                            const tempY = Math.max(15, Math.min(125, 140 - (day.weather.temperature / 40 * 125)))
+                            return (
+                              <g key={`temp-${i}`}>
+                                <circle
+                                  cx={(i * 70) + 40}
+                                  cy={tempY}
+                                  r="4"
+                                  fill="#ef4444"
+                                  stroke="white"
+                                  strokeWidth="2"
+                                />
+                                <text
+                                  x={(i * 70) + 40}
+                                  y={Math.min(135, tempY + 16)}
+                                  textAnchor="middle"
+                                  className="text-xs font-bold fill-red-600"
+                                >
+                                  {Math.round(day.weather.temperature)}°
+                                </text>
+                              </g>
+                            )
+                          })}
+                          
+                          {/* Humidity points with values */}
+                          {field.dailyRisks.map((day: any, i: number) => {
+                            const humidityY = Math.max(15, Math.min(125, 140 - (day.weather.humidity / 100 * 125)))
+                            return (
+                              <g key={`hum-${i}`}>
+                                <circle
+                                  cx={(i * 70) + 40}
+                                  cy={humidityY}
+                                  r="4"
+                                  fill="#3b82f6"
+                                  stroke="white"
+                                  strokeWidth="2"
+                                />
+                                <text
+                                  x={(i * 70) + 40}
+                                  y={Math.max(10, humidityY - 10)}
+                                  textAnchor="middle"
+                                  className="text-xs font-bold fill-blue-600"
+                                >
+                                  {Math.round(day.weather.humidity)}%
+                                </text>
+                              </g>
+                            )
+                          })}
+                        </svg>
+                      </div>
+                      
+                      {/* Legend */}
+                      <div className="flex justify-center space-x-8 mt-2 mb-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow-sm"></div>
+                          <span className="text-xs text-gray-600 font-medium">Temperatur (°C)</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-sm"></div>
+                          <span className="text-xs text-gray-600 font-medium">Luftfeuchtigkeit (%)</span>
+                        </div>
+                      </div>
+                      
+                      {/* Days labels */}
+                      <div className="flex mt-2 px-8 text-sm font-medium text-gray-700">
+                        {field.dailyRisks.map((day: any, i: number) => (
+                          <div key={i} className="text-center flex-1" style={{ marginLeft: i === 0 ? '24px' : '0', marginRight: i === 6 ? '24px' : '0' }}>
+                            <div>{day.dayName}</div>
+                            <div className="text-xs text-gray-500">{day.dayNumber}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Weather info below */}
-                  <div className="flex mt-2">
-                    <div className="w-16"></div>
-                    {field.dailyRisks.map((day: any, dayIndex: number) => (
-                      <div key={dayIndex} className="flex-1 text-center">
-                        <div className="text-xs text-gray-600">
-                          {Math.round(day.weather.temperature)}°C
-                          {day.weather.precipitation > 0 && (
-                            <span className="text-blue-600"> • {day.weather.precipitation.toFixed(1)}mm</span>
-                          )}
-                        </div>
-                        {day.riskScore <= 15 && (
-                          <div className={`text-xs font-medium ${getRiskTextColor(day.riskScore)}`}>
-                            {day.riskScore}%
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
                 </div>
-                
-                {/* Risk Factors Summary */}
-                <div className="pt-3 border-t border-gray-200">
-                  <div className="text-sm text-gray-600">
-                    <span className="font-medium">Hauptrisiken:</span>{' '}
-                    {field.dailyRisks
-                      .flatMap((day: any) => day.riskFactors)
-                      .reduce((acc: any[], factor: any) => {
-                        const existing = acc.find(f => f.type === factor.type)
-                        if (existing) {
-                          existing.count++
-                          existing.maxScore = Math.max(existing.maxScore, factor.score)
-                        } else {
-                          acc.push({ type: factor.type, count: 1, maxScore: factor.score })
-                        }
-                        return acc
-                      }, [])
-                      .sort((a: any, b: any) => b.maxScore - a.maxScore)
-                      .slice(0, 3)
-                      .map((factor: any) => `${factor.type} (${factor.count}x)`)
-                      .join(', ') || 'Keine kritischen Risiken'}
-                  </div>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Erste Schritte</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <a
-            href="/dashboard/farms"
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors"
-          >
-            <h3 className="font-medium text-gray-900">Feld hinzufügen</h3>
-            <p className="text-gray-600 text-sm">Fügen Sie Ihr erstes Feld hinzu und beginnen Sie mit der Überwachung.</p>
-          </a>
-          
-          <a
-            href="/dashboard/weather"
-            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
-          >
-            <h3 className="font-medium text-gray-900">Wetter prüfen</h3>
-            <p className="text-gray-600 text-sm">Überprüfen Sie die Wettervorhersage für optimale Erntebedingungen.</p>
-          </a>
-        </div>
-      </div>
     </div>
   )
 }

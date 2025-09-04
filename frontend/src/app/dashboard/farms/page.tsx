@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, MapPin, Calendar, Wheat, Trash2 } from 'lucide-react'
+import { Plus, MapPin, Calendar, Wheat, Trash2, Sprout, Clock, TrendingUp, Thermometer, Droplets, Info, CheckCircle, AlertTriangle, XCircle } from 'lucide-react'
 
 interface Farm {
   id: string
@@ -183,6 +183,48 @@ export default function FarmsPage() {
         </div>
       )}
 
+      {/* Legende */}
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+          <Info className="h-4 w-4" />
+          <span>Legende</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div className="flex items-center space-x-2">
+            <MapPin className="h-3 w-3 text-red-600" />
+            <span className="text-gray-600">Standort (klickbar)</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="h-3 w-3 text-green-500" />
+            <span className="text-gray-600">Guter Zustand</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="h-3 w-3 text-yellow-500" />
+            <span className="text-gray-600">Achtung erforderlich</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <XCircle className="h-3 w-3 text-red-500" />
+            <span className="text-gray-600">Kritischer Zustand</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <TrendingUp className="h-3 w-3 text-blue-500" />
+            <span className="text-gray-600">Ertragsprognose</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Droplets className="h-3 w-3 text-blue-400" />
+            <span className="text-gray-600">Bewässerungsstatus</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Clock className="h-3 w-3 text-gray-500" />
+            <span className="text-gray-600">Letzte Aktivität</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Sprout className="h-3 w-3 text-green-600" />
+            <span className="text-gray-600">Angebaute Kulturen</span>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {farms.length === 0 ? (
           <div className="col-span-full text-center py-12">
@@ -192,25 +234,69 @@ export default function FarmsPage() {
           </div>
         ) : (
           farms.map((farm) => (
-            <div key={farm.id} className="bg-white rounded-lg shadow-md p-6">
+            <div key={farm.id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{farm.name}</h3>
               <div className="space-y-2 text-sm text-gray-600">
-                <div className="flex items-center space-x-1">
-                  <MapPin className="h-4 w-4" />
+                <div className="flex items-center space-x-1 cursor-pointer hover:text-green-600 transition-colors" onClick={() => window.location.href = '/dashboard/getreidekarte'}>
+                  <MapPin className="h-4 w-4 text-red-600" />
                   <span>{farm.location}</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Wheat className="h-4 w-4" />
                   <span>{farm.crops.length} Kulturen</span>
                 </div>
+                {farm.crops.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {farm.crops.slice(0, 3).map((crop, index) => (
+                      <div key={crop.id} className="text-xs text-gray-500 flex items-center space-x-1">
+                        <Sprout className="h-3 w-3" />
+                        <span>{crop.type} - gepflanzt am {new Date(crop.plantedDate).toLocaleDateString('de-DE')}</span>
+                      </div>
+                    ))}
+                    {farm.crops.length > 3 && (
+                      <div className="text-xs text-gray-400">... und {farm.crops.length - 3} weitere</div>
+                    )}
+                  </div>
+                )}
               </div>
+              
+              {/* Quick Stats */}
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <TrendingUp className="h-3 w-3" />
+                    <span>Ertrag: Gut</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span>Zustand: Gut</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Droplets className="h-3 w-3" />
+                    <span>Bewässerung: OK</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Clock className="h-3 w-3" />
+                    <span>Letzte Pflege: 2d</span>
+                  </div>
+                </div>
+              </div>
+              
               <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
-                <a
-                  href={`/dashboard/farms/${farm.id}`}
-                  className="text-green-600 hover:text-green-800 text-sm font-medium"
-                >
-                  Details anzeigen →
-                </a>
+                <div className="flex space-x-2">
+                  <a
+                    href={`/dashboard/farms/${farm.id}`}
+                    className="text-green-600 hover:text-green-800 text-sm font-medium"
+                  >
+                    Details →
+                  </a>
+                  <button
+                    onClick={() => window.location.href = '/dashboard/weather'}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    Wetter →
+                  </button>
+                </div>
                 <button
                   onClick={() => handleDelete(farm.id, farm.name)}
                   className="text-red-600 hover:text-red-800 p-1 rounded-md hover:bg-red-50 transition-colors"

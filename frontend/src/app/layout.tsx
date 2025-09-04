@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Agrar Dashboard",
-  description: "Landwirtschaftliches Ernte-Dashboard",
+  title: "CropGuard",
+  description: "Schutz für deine Kulturen - Landwirtschaftliches Dashboard",
 };
 
 export default function RootLayout({

@@ -15,7 +15,7 @@ export default function DashboardLayout({
             <div className="flex items-center space-x-8">
               <div className="flex items-center space-x-2">
                 <Tractor className="h-8 w-8" />
-                <span className="text-xl font-bold">Agrar Dashboard</span>
+                <span className="text-xl font-bold">CropGuard</span>
               </div>
               
               <div className="flex space-x-4">
@@ -38,7 +38,7 @@ export default function DashboardLayout({
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-sm">Willkommen, Test User</span>
+              <span className="text-sm">Willkommen, Carl</span>
               <button className="flex items-center space-x-1 hover:bg-green-700 px-3 py-2 rounded-md">
                 <Settings className="h-4 w-4" />
                 <span>Einstellungen</span>
