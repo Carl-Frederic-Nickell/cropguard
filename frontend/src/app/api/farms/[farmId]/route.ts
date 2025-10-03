@@ -1,29 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5002'
+import { prisma } from '@/lib/prisma'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { farmId: string } }
+  { params }: { params: Promise<{ farmId: string }> }
 ) {
   try {
-    const { farmId } = params
+    const { farmId } = await params
 
-    const response = await fetch(`${BACKEND_URL}/api/farms/${farmId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    // First delete all crops of the farm
+    await prisma.crop.deleteMany({
+      where: { farmId }
     })
 
-    if (!response.ok) {
-      throw new Error(`Backend responded with status: ${response.status}`)
-    }
+    // Then delete the farm itself
+    await prisma.farm.delete({
+      where: { id: farmId }
+    })
 
-    return NextResponse.json({ success: true })
-    
+    return NextResponse.json({ success: true, message: 'Farm successfully deleted' })
   } catch (error) {
-    console.error('Delete farm API error:', error)
+    console.error('Error deleting farm:', error)
     return NextResponse.json(
       { error: 'Failed to delete farm' },
       { status: 500 }
@@ -33,29 +30,28 @@ export async function DELETE(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { farmId: string } }
+  { params }: { params: Promise<{ farmId: string }> }
 ) {
   try {
-    const { farmId } = params
+    const { farmId } = await params
 
-    const response = await fetch(`${BACKEND_URL}/api/farms/${farmId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    const farm = await prisma.farm.findUnique({
+      where: { id: farmId },
+      include: { crops: true }
     })
 
-    if (!response.ok) {
-      throw new Error(`Backend responded with status: ${response.status}`)
+    if (!farm) {
+      return NextResponse.json(
+        { error: 'Farm not found' },
+        { status: 404 }
+      )
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
-    
+    return NextResponse.json(farm)
   } catch (error) {
-    console.error('Get farm API error:', error)
+    console.error('Error fetching farm:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch farm data' },
+      { error: 'Failed to fetch farm' },
       { status: 500 }
     )
   }

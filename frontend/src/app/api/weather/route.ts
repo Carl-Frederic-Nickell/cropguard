@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5002'
+import { getCurrentWeather, getWeatherForecast, getHarvestRecommendation } from '@/lib/weather'
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,22 +15,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const backendUrl = `${BACKEND_URL}/api/weather?lat=${lat}&lon=${lon}&cropType=${cropType}`
-    
-    const response = await fetch(backendUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    const currentWeather = await getCurrentWeather(Number(lat), Number(lon))
+    const forecast = await getWeatherForecast(Number(lat), Number(lon))
 
-    if (!response.ok) {
-      throw new Error(`Backend responded with status: ${response.status}`)
+    let harvestRecommendations = []
+
+    if (cropType) {
+      harvestRecommendations = [currentWeather, ...forecast].map((weather, index) =>
+        getHarvestRecommendation(weather, String(cropType), index === 0 ? forecast : undefined)
+      )
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
-    
+    return NextResponse.json({
+      current: currentWeather,
+      forecast,
+      harvestRecommendations
+    })
   } catch (error) {
     console.error('Weather API error:', error)
     return NextResponse.json(

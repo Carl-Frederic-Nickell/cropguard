@@ -1,33 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5002'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { farmId: string } }
+  { params }: { params: Promise<{ farmId: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('authorization')
-    const body = await request.json()
-    
-    const response = await fetch(`${BACKEND_URL}/api/farms/${params.farmId}/crops`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': authHeader || '',
-      },
-      body: JSON.stringify(body)
+    const { farmId } = await params
+    const { name, type, plantedDate } = await request.json()
+
+    const crop = await prisma.crop.create({
+      data: {
+        name,
+        type,
+        plantedDate: new Date(plantedDate),
+        farmId
+      }
     })
 
-    if (!response.ok) {
-      throw new Error(`Backend responded with status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    return NextResponse.json(data)
-    
+    return NextResponse.json(crop, { status: 201 })
   } catch (error) {
-    console.error('Add crop API error:', error)
+    console.error('Error adding crop:', error)
     return NextResponse.json(
       { error: 'Failed to add crop' },
       { status: 500 }
