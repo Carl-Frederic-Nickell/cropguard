@@ -414,15 +414,15 @@ export default function DashboardPage() {
     const month = now.getMonth() + 1 // 1-12
     
     // Harvest timing by crop type (simplified for demo)
-    const harvestMonths = {
+    const harvestMonths: Record<string, number[]> = {
       weizen: [7, 8, 9], // Juli-September
-      gerste: [6, 7, 8], // Juni-August  
+      gerste: [6, 7, 8], // Juni-August
       raps: [7, 8], // Juli-August
       mais: [9, 10, 11], // September-November
       kartoffeln: [8, 9, 10], // August-Oktober
       zuckerrueben: [10, 11], // Oktober-November
     }
-    
+
     const cropMonths = harvestMonths[cropType.toLowerCase()] || [8, 9]
     const isHarvestSeason = cropMonths.includes(month)
     

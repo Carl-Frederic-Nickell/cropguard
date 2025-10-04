@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const currentWeather = await getCurrentWeather(Number(lat), Number(lon))
     const forecast = await getWeatherForecast(Number(lat), Number(lon))
 
-    let harvestRecommendations = []
+    let harvestRecommendations: ReturnType<typeof getHarvestRecommendation>[] = []
 
     if (cropType) {
       harvestRecommendations = [currentWeather, ...forecast].map((weather, index) =>

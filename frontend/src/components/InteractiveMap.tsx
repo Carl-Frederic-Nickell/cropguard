@@ -62,7 +62,7 @@ interface InteractiveMapProps {
   farms: Farm[]
   cropStatuses: CropStatus[]
   onFarmClick?: (farm: Farm) => void
-  selectedFarmId?: string
+  selectedFarmId?: string | null
 }
 
 export default function InteractiveMap({ farms, cropStatuses, onFarmClick, selectedFarmId }: InteractiveMapProps) {

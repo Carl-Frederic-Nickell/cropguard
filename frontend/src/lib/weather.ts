@@ -142,8 +142,8 @@ export const getHarvestRecommendation = (
   const criteria = cropCriteria[cropType.toLowerCase()] || cropCriteria.weizen
 
   let recommendation: 'good' | 'caution' | 'avoid' = 'good'
-  let reasons: string[] = []
-  let riskFactors: Array<{type: 'weather' | 'timing' | 'conditions', severity: 'low' | 'medium' | 'high', description: string}> = []
+  const reasons: string[] = []
+  const riskFactors: Array<{type: 'weather' | 'timing' | 'conditions', severity: 'low' | 'medium' | 'high', description: string}> = []
   let confidence = 100
 
   // Temperature analysis
