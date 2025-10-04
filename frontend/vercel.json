@@ -4,13 +4,5 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
-  "regions": ["fra1"],
-  "env": {
-    "OPENWEATHER_API_KEY": "@openweather-api-key"
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_API_URL": "https://your-backend-url.railway.app"
-    }
-  }
+  "regions": ["fra1"]
 }
