@@ -17,7 +17,7 @@ app.use(express.json());
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Agrar Dashboard API running' });
+  res.json({ status: 'OK', message: 'CropGuard API running' });
 });
 
 // Routes

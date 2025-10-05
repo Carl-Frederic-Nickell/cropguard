@@ -1,4 +1,4 @@
-# Agrar Dashboard - Setup & Test Guide
+# CropGuard - Setup & Test Guide
 
 ## 🚀 Quick Start
 
@@ -8,7 +8,7 @@
 
 ### 1. Clone and Setup
 ```bash
-cd /path/to/agrar-dashboard
+cd /path/to/cropguard
 cp .env.example .env
 ```
 
@@ -25,7 +25,7 @@ OPENWEATHER_API_KEY=your_actual_api_key_here
 
 # Or manually
 docker-compose up --build -d
-docker exec -it agrar-backend sh -c "cd /app && npm run db:push"
+docker exec -it cropguard-backend sh -c "cd /app && npm run db:push"
 ```
 
 ### 4. Access Application
@@ -136,13 +136,13 @@ docker-compose down -v
 docker-compose up -d postgres
 sleep 10
 docker-compose up -d backend frontend
-docker exec -it agrar-backend sh -c "cd /app && npm run db:push"
+docker exec -it cropguard-backend sh -c "cd /app && npm run db:push"
 ```
 
 **3. Weather data not loading**
 - Verify OPENWEATHER_API_KEY is set in .env
 - Check API key is active (may take a few minutes after creation)
-- View backend logs: `docker logs agrar-backend`
+- View backend logs: `docker logs cropguard-backend`
 
 **4. Authentication issues**
 - Clear browser cookies/localStorage for localhost:3001
@@ -161,13 +161,13 @@ docker-compose down -v
 docker-compose up --build -d
 
 # View specific service logs
-docker logs agrar-frontend
-docker logs agrar-backend
-docker logs agrar-db
+docker logs cropguard-frontend
+docker logs cropguard-backend
+docker logs cropguard-db
 
 # Execute commands in containers
-docker exec -it agrar-backend sh
-docker exec -it agrar-frontend sh
+docker exec -it cropguard-backend sh
+docker exec -it cropguard-frontend sh
 ```
 
 ## 📊 Test Data Examples

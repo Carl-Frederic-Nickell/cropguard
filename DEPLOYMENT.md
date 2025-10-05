@@ -24,7 +24,7 @@ This guide will help you deploy **CropGuard** to production using free cloud ser
 
 1. In the same Railway project, click **"New Service"** → **"GitHub Repo"**
 2. Connect your GitHub repository
-3. Select the **`agrar-dashboard`** repository
+3. Select the **`cropguard`** repository
 4. Set **Root Directory** to `backend`
 5. Click **"Deploy"**
 
@@ -74,7 +74,7 @@ Copy this URL - you'll need it for the frontend.
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Click **"Add New..."** → **"Project"**
 3. Import your GitHub repository
-4. Select **`agrar-dashboard`** repository
+4. Select **`cropguard`** repository
 5. Set **Root Directory** to `frontend`
 6. Framework Preset: **Next.js** (auto-detected)
 
@@ -153,7 +153,7 @@ Redeploy backend on Railway after this change.
 ### Test Backend
 ```bash
 curl https://your-backend.up.railway.app/api/health
-# Should return: {"status":"OK","message":"Agrar Dashboard API running"}
+# Should return: {"status":"OK","message":"CropGuard API running"}
 ```
 
 ### Test Frontend

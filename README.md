@@ -8,7 +8,7 @@
 [![Prisma](https://img.shields.io/badge/Prisma-6.15-2D3748?style=flat&logo=prisma)](https://www.prisma.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[**Live Demo**](#) • [**Documentation**](./PRESENTATION.md) • [**Deploy Guide**](./DEPLOYMENT.md)
+[**🚀 Live Demo**](https://cropguarddashboardcfn.vercel.app/dashboard) • [**Documentation**](./PRESENTATION.md) • [**Deploy Guide**](./DEPLOYMENT.md)
 
 ---
 
@@ -103,8 +103,8 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/agrar-dashboard.git
-cd agrar-dashboard
+git clone https://github.com/yourusername/cropguard.git
+cd cropguard
 ```
 
 2. **Set up Backend**
@@ -161,7 +161,7 @@ Access the app at `http://localhost:3001`
 ## 📁 Project Structure
 
 ```
-agrar-dashboard/
+cropguard/
 ├── backend/                  # Express + Prisma backend
 │   ├── src/
 │   │   ├── controllers/      # Request handlers
@@ -371,7 +371,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - LinkedIn: [linkedin.com/in/yourprofile](#)
 - Email: your.email@example.com
 
-**Project Link**: [https://github.com/yourusername/agrar-dashboard](https://github.com/yourusername/agrar-dashboard)
+**Project Link**: [https://github.com/yourusername/cropguard](https://github.com/yourusername/cropguard)
 
 ---
 

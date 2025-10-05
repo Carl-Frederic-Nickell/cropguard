@@ -18,7 +18,7 @@ Get your app live in **15 minutes**! 🚀
 1. Go to **railway.app/new**
 2. Click **"Provision PostgreSQL"**
 3. Click **"New Service"** → **"GitHub Repo"**
-4. Select **agrar-dashboard** repo
+4. Select **cropguard** repo
 5. Set Root Directory: `backend`
 
 ### B. Add Environment Variables
@@ -51,7 +51,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### A. Import to Vercel
 
 1. Go to **vercel.com/new**
-2. Import **agrar-dashboard** repo
+2. Import **cropguard** repo
 3. Set Root Directory: `frontend`
 4. Framework: **Next.js** (auto-detected)
 
@@ -107,7 +107,7 @@ curl https://your-backend.up.railway.app/api/health
 
 Should return:
 ```json
-{"status":"OK","message":"Agrar Dashboard API running"}
+{"status":"OK","message":"CropGuard API running"}
 ```
 
 ### Test Frontend

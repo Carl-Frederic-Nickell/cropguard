@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🌱 Starting Agrar Dashboard..."
+echo "🌱 Starting CropGuard..."
 
 # Check if .env file exists
 if [ ! -f .env ]; then
@@ -31,9 +31,9 @@ echo "⏳ Waiting for database to be ready..."
 sleep 10
 
 echo "🗄️  Setting up database..."
-docker exec -it agrar-backend sh -c "cd /app && npm run db:push"
+docker exec -it cropguard-backend sh -c "cd /app && npm run db:push"
 
-echo "✅ Agrar Dashboard is ready!"
+echo "✅ CropGuard is ready!"
 echo ""
 echo "🌐 Access your application:"
 echo "   Frontend: http://localhost:3001"
