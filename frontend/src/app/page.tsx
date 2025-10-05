@@ -7,18 +7,18 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+      <section className="relative overflow-hidden bg-gradient-to-br from-green-600 to-green-700">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-10"></div>
 
         <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <Tractor className="h-8 w-8 text-green-600" />
-              <span className="text-2xl font-bold text-gray-900">CropGuard</span>
+              <Tractor className="h-8 w-8 text-white" />
+              <span className="text-2xl font-bold text-white">CropGuard</span>
             </div>
             <Link
               href="/dashboard"
-              className="px-4 py-2 text-green-600 hover:text-green-700 font-medium transition"
+              className="px-4 py-2 text-white hover:text-green-100 font-medium transition"
             >
               View Dashboard
             </Link>
@@ -26,19 +26,19 @@ export default function LandingPage() {
         </nav>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 text-center">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
             Smart Harvest Management
-            <span className="block text-green-600 mt-2">Made Simple</span>
+            <span className="block text-green-200 mt-2 text-4xl md:text-5xl lg:text-6xl">Made Simple</span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-green-50 mb-8 max-w-3xl mx-auto">
             Data-driven agricultural decisions with real-time weather integration and intelligent risk analysis
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               href="/dashboard"
-              className="inline-flex items-center px-8 py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="inline-flex items-center px-8 py-4 bg-white text-green-600 font-semibold rounded-lg hover:bg-green-50 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               Open Dashboard
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -47,23 +47,23 @@ export default function LandingPage() {
               href="https://github.com/yourusername/cropguard"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-8 py-4 bg-white text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition border-2 border-gray-200"
+              className="inline-flex items-center px-8 py-4 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-400 transition border-2 border-green-400"
             >
               View on GitHub
             </a>
           </div>
 
-          <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm text-gray-600">
+          <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm text-green-50">
             <div className="flex items-center gap-2">
-              <Cloud className="h-5 w-5 text-green-600" />
+              <Cloud className="h-5 w-5 text-green-200" />
               <span>Real-time Weather</span>
             </div>
             <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-green-600" />
+              <MapPin className="h-5 w-5 text-green-200" />
               <span>Interactive Maps</span>
             </div>
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <TrendingUp className="h-5 w-5 text-green-200" />
               <span>Risk Analysis</span>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature 1 */}
-            <div className="p-6 bg-green-50 rounded-xl hover:shadow-lg transition">
+            <div className="p-6 bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-500">
               <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mb-4">
                 <Cloud className="h-6 w-6 text-white" />
               </div>
@@ -91,7 +91,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 2 */}
-            <div className="p-6 bg-blue-50 rounded-xl hover:shadow-lg transition">
+            <div className="p-6 bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-500">
               <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
                 <MapPin className="h-6 w-6 text-white" />
               </div>
@@ -102,7 +102,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 3 */}
-            <div className="p-6 bg-amber-50 rounded-xl hover:shadow-lg transition">
+            <div className="p-6 bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-500">
               <div className="w-12 h-12 bg-amber-600 rounded-lg flex items-center justify-center mb-4">
                 <TrendingUp className="h-6 w-6 text-white" />
               </div>
@@ -113,7 +113,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 4 */}
-            <div className="p-6 bg-purple-50 rounded-xl hover:shadow-lg transition">
+            <div className="p-6 bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-500">
               <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4">
                 <Tractor className="h-6 w-6 text-white" />
               </div>
@@ -124,7 +124,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 5 */}
-            <div className="p-6 bg-emerald-50 rounded-xl hover:shadow-lg transition">
+            <div className="p-6 bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-500">
               <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center mb-4">
                 <Sprout className="h-6 w-6 text-white" />
               </div>
@@ -135,7 +135,7 @@ export default function LandingPage() {
             </div>
 
             {/* Feature 6 */}
-            <div className="p-6 bg-indigo-50 rounded-xl hover:shadow-lg transition">
+            <div className="p-6 bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-500">
               <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center mb-4">
                 <BarChart3 className="h-6 w-6 text-white" />
               </div>
@@ -157,25 +157,25 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-green-500 text-center">
               <div className="text-3xl font-bold text-gray-900 mb-2">Next.js 15</div>
               <p className="text-gray-600">App Router & SSR</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-green-500 text-center">
               <div className="text-3xl font-bold text-blue-600 mb-2">TypeScript</div>
               <p className="text-gray-600">Type Safety</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-green-500 text-center">
               <div className="text-3xl font-bold text-teal-600 mb-2">Tailwind</div>
               <p className="text-gray-600">Modern Styling</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+            <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-green-500 text-center">
               <div className="text-3xl font-bold text-indigo-600 mb-2">PostgreSQL</div>
               <p className="text-gray-600">Neon Serverless</p>
             </div>
           </div>
 
-          <div className="mt-12 bg-white rounded-xl shadow-sm p-8">
+          <div className="mt-12 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-green-500 p-8">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Shield className="h-6 w-6 text-green-600" />
