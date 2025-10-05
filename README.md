@@ -103,7 +103,7 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/cropguard.git
+git clone https://github.com/Carl-Frederic-Nickell/cropguard.git
 cd cropguard
 ```
 
@@ -296,18 +296,16 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for comprehensive deployment instructions, 
 ## 🎨 Screenshots
 
 ### Dashboard Overview
-![Dashboard](./docs/screenshots/dashboard.png)
+![Dashboard](./frontend/public/screenshots/Dashboard_crop.png)
 
-### Interactive Farm Map
-![Getreidekarte](./docs/screenshots/map.png)
+### Interactive Crop Map
+![Getreidekarte](./frontend/public/screenshots/Cropmap_top.png)
 
-### Weather Analysis
-![Weather](./docs/screenshots/weather.png)
+### Crop Management
+![Crops](./frontend/public/screenshots/Crop_overview.png)
 
-### Farm Management
-![Farms](./docs/screenshots/farms.png)
-
-> **Note**: Screenshots to be added after deployment
+### Weather Analytics
+![Weather](./frontend/public/screenshots/Weather_analytics.png)
 
 ---
 
@@ -359,7 +357,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Leaflet** - Interactive mapping library
 - **Next.js Team** - Amazing React framework
 - **Vercel** - Hosting and deployment
-- **Railway** - Backend infrastructure
+- **Neon** - Serverless PostgreSQL
 
 ---
 
@@ -367,11 +365,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Carl Frederic Nickell**
 
-- Portfolio: [your-portfolio-url.com](#)
-- LinkedIn: [linkedin.com/in/yourprofile](#)
-- Email: your.email@example.com
+- Portfolio: [carl-cyber.tech](https://carl-cyber.tech)
+- LinkedIn: [Carl-Frederic Nickell](https://linkedin.com/in/carl-frederic-nickell)
+- GitHub: [@Carl-Frederic-Nickell](https://github.com/Carl-Frederic-Nickell)
+- Email: mail@carl-cyber.tech
 
-**Project Link**: [https://github.com/yourusername/cropguard](https://github.com/yourusername/cropguard)
+**Project Link**: [https://github.com/Carl-Frederic-Nickell/cropguard](https://github.com/Carl-Frederic-Nickell/cropguard)
+
+**Live Demo**: [https://cropguarddashboardcfn.vercel.app](https://cropguarddashboardcfn.vercel.app)
 
 ---
 
