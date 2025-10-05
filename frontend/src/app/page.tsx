@@ -12,10 +12,10 @@ export default function LandingPage() {
 
         <nav className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition">
               <Tractor className="h-8 w-8 text-white" />
               <span className="text-2xl font-bold text-white">CropGuard</span>
-            </div>
+            </Link>
             <Link
               href="/dashboard"
               className="px-4 py-2 text-white hover:text-green-100 font-medium transition"
@@ -44,7 +44,7 @@ export default function LandingPage() {
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
             <a
-              href="https://github.com/yourusername/cropguard"
+              href="https://github.com/Carl-Frederic-Nickell/cropguard"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-8 py-4 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-400 transition border-2 border-green-400"
@@ -242,7 +242,7 @@ export default function LandingPage() {
               <h3 className="text-white font-semibold mb-4">Project</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="https://github.com/yourusername/cropguard" target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition">
+                  <a href="https://github.com/Carl-Frederic-Nickell/cropguard" target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition">
                     GitHub Repository
                   </a>
                 </li>
