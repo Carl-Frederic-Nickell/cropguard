@@ -269,7 +269,7 @@ export default function LandingPage() {
               {expandedTech === 'postgresql' && (
                 <div className="px-6 pb-6 text-sm text-gray-600 border-t pt-4">
                   <strong className="text-green-600">Why PostgreSQL with Neon?</strong>
-                  <p className="mt-2">Robust relational database with excellent data integrity. Neon's serverless platform offers automatic scaling, branching for development, and zero-downtime migrations.</p>
+                  <p className="mt-2">Robust relational database with excellent data integrity. Neon&apos;s serverless platform offers automatic scaling, branching for development, and zero-downtime migrations.</p>
                 </div>
               )}
             </div>
